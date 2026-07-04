@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Board — Actors & tensions in AI governance</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0F1521;
+    --bg-raised:#161E2E;
+    --card:#1B2436;
+    --card-hi:#212C42;
+    --line:#2A3548;
+    --line-hi:#3C4A64;
+    --text-hi:#E8EAF0;
+    --text-mid:#9BA6BC;
+    --text-dim:#66738C;
+    --gold:#D9B26A;
+    --indigo:#9488E0;
+    --teal:#57C2A8;
+    --coral:#E28C7B;
+    --display:'Space Grotesk',sans-serif;
+    --body:'IBM Plex Sans',sans-serif;
+    --mono:'IBM Plex Mono',monospace;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    background:var(--bg);
+    color:var(--text-hi);
+    font-family:var(--body);
+    line-height:1.55;
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  .wrap{max-width:1180px;margin:0 auto;padding:0 24px}
+
+  /* ---------- header ---------- */
+  header{padding:64px 0 20px}
+  .kicker{
+    font-family:var(--mono);
+    font-size:12px;
+    letter-spacing:.22em;
+    text-transform:uppercase;
+    color:var(--text-dim);
+    display:flex;align-items:center;gap:12px;
+    margin-bottom:26px;
+  }
+  .kicker .bar{height:1px;width:40px;background:var(--line-hi)}
+  h1{
+    font-family:var(--display);
+    font-weight:600;
+    font-size:clamp(30px,5vw,52px);
+    line-height:1.06;
+    letter-spacing:-.02em;
+    max-width:16ch;
+    margin-bottom:22px;
+  }
+  h1 em{font-style:normal;color:var(--gold)}
+  .lede{
+    font-size:clamp(16px,2vw,19px);
+    color:var(--text-mid);
+    max-width:60ch;
+  }
+  .lede strong{color:var(--text-hi);font-weight:500}
+
+  /* ---------- controls ---------- */
+  .controls{
+    display:flex;flex-wrap:wrap;align-items:center;gap:16px;
+    padding:26px 0 10px;
+    border-bottom:1px solid var(--line);
+    margin-top:38px;
+  }
+  .legend{display:flex;flex-wrap:wrap;gap:18px;flex:1}
+  .legend-item{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--text-mid)}
+  .dot{width:10px;height:10px;border-radius:3px;flex:none}
+  .lens-toggle{
+    display:inline-flex;align-items:center;gap:10px;
+    font-family:var(--mono);font-size:12px;letter-spacing:.04em;
+    color:var(--text-mid);cursor:pointer;user-select:none;
+    background:none;border:1px solid var(--line);border-radius:999px;
+    padding:8px 15px;transition:border-color .2s,color .2s;
+  }
+  .lens-toggle:hover{border-color:var(--line-hi);color:var(--text-hi)}
+  .lens-toggle .pip{
+    width:30px;height:16px;border-radius:999px;background:var(--line);
+    position:relative;transition:background .25s;flex:none;
+  }
+  .lens-toggle .pip::after{
+    content:'';position:absolute;top:2px;left:2px;width:12px;height:12px;
+    border-radius:50%;background:var(--text-dim);transition:transform .25s,background .25s;
+  }
+  .lens-toggle[aria-pressed="true"]{border-color:var(--coral);color:var(--coral)}
+  .lens-toggle[aria-pressed="true"] .pip{background:rgba(226,140,123,.35)}
+  .lens-toggle[aria-pressed="true"] .pip::after{transform:translateX(14px);background:var(--coral)}
+
+  /* ---------- board ---------- */
+  .stage{padding:34px 0 10px}
+  .board{
+    position:relative;
+    width:100%;
+    aspect-ratio:16/9.4;
+    background:
+      radial-gradient(120% 120% at 50% 0%,rgba(148,136,224,.06),transparent 60%),
+      var(--bg-raised);
+    border:1px solid var(--line);
+    border-radius:16px;
+    overflow:hidden;
+  }
+  .board::before{
+    content:'';position:absolute;inset:0;
+    background-image:linear-gradient(var(--line) 1px,transparent 1px),linear-gradient(90deg,var(--line) 1px,transparent 1px);
+    background-size:44px 44px;
+    opacity:.14;
+    mask-image:radial-gradient(120% 100% at 50% 40%,#000 40%,transparent 85%);
+  }
+  #edges{position:absolute;inset:0;width:100%;height:100%;z-index:1}
+  .edge{stroke:var(--line-hi);stroke-width:1.4;fill:none;transition:stroke .25s,stroke-width .25s,opacity .25s;cursor:pointer}
+  .edge-hit{stroke:transparent;stroke-width:22;fill:none;cursor:pointer}
+  .edge-flow{stroke-width:1.4;fill:none;stroke-dasharray:3 9;opacity:.55;pointer-events:none;
+    animation:flow 2.6s linear infinite;transition:opacity .25s;}
+  @keyframes flow{to{stroke-dashoffset:-24}}
+  .edge.dim,.edge-flow.dim{opacity:.12}
+  .edge.active{stroke-width:2.2}
+
+  .node{
+    position:absolute;z-index:3;
+    transform:translate(-50%,-50%);
+    width:186px;
+    background:var(--card);
+    border:1px solid var(--line-hi);
+    border-radius:12px;
+    padding:14px 15px 13px;
+    text-align:left;
+    cursor:pointer;
+    font-family:var(--body);
+    color:var(--text-hi);
+    transition:transform .18s,border-color .2s,background .2s,box-shadow .25s,opacity .25s;
+    box-shadow:0 8px 24px rgba(0,0,0,.28);
+  }
+  .node:hover{background:var(--card-hi);transform:translate(-50%,-50%) translateY(-3px)}
+  .node:focus-visible{outline:2px solid var(--focus,#fff);outline-offset:3px}
+  .node.selected{border-color:var(--fc);box-shadow:0 0 0 1px var(--fc),0 14px 34px rgba(0,0,0,.4)}
+  .node.dim{opacity:.4}
+  .node .n-tag{
+    font-family:var(--mono);font-size:10.5px;letter-spacing:.14em;text-transform:uppercase;
+    color:var(--fc);display:flex;align-items:center;gap:7px;margin-bottom:9px;
+  }
+  .node .n-tag::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--fc)}
+  .node .n-name{font-family:var(--display);font-weight:600;font-size:16px;line-height:1.15;letter-spacing:-.01em}
+  .node .n-essence{font-size:12.5px;color:var(--text-mid);margin-top:4px}
+  .node .n-limit{
+    font-size:11.5px;color:var(--coral);margin-top:9px;line-height:1.35;
+    max-height:0;overflow:hidden;opacity:0;transition:max-height .3s,opacity .25s,margin .3s;
+  }
+  body.lens .node .n-essence{opacity:.35;transition:opacity .25s}
+  body.lens .node .n-limit{max-height:60px;opacity:1}
+
+  .hint{
+    text-align:center;font-family:var(--mono);font-size:12px;color:var(--text-dim);
+    letter-spacing:.03em;margin-top:16px;
+  }
+
+  /* ---------- tensions rail (keyboard + mobile) ---------- */
+  .rail{margin-top:30px}
+  .rail-label{
+    font-family:var(--mono);font-size:11px;letter-spacing:.18em;text-transform:uppercase;
+    color:var(--text-dim);margin-bottom:14px;
+  }
+  .tension-chips{display:flex;flex-wrap:wrap;gap:10px}
+  .chip{
+    font-family:var(--body);font-size:13px;color:var(--text-mid);
+    background:var(--card);border:1px solid var(--line);border-radius:999px;
+    padding:8px 15px;cursor:pointer;transition:border-color .2s,color .2s,background .2s;
+    display:inline-flex;align-items:center;gap:9px;
+  }
+  .chip:hover{border-color:var(--line-hi);color:var(--text-hi);background:var(--card-hi)}
+  .chip:focus-visible{outline:2px solid #fff;outline-offset:2px}
+  .chip .g{width:8px;height:8px;border-radius:2px;flex:none}
+  .chip .g2{width:8px;height:8px;border-radius:2px;flex:none;margin-left:-15px}
+
+  /* ---------- detail panel ---------- */
+  .scrim{position:fixed;inset:0;background:rgba(8,11,18,.6);opacity:0;pointer-events:none;
+    transition:opacity .3s;z-index:40;backdrop-filter:blur(2px)}
+  .scrim.open{opacity:1;pointer-events:auto}
+  .panel{
+    position:fixed;top:0;right:0;height:100%;width:min(460px,92vw);
+    background:var(--bg-raised);border-left:1px solid var(--line-hi);
+    z-index:50;transform:translateX(100%);transition:transform .34s cubic-bezier(.4,0,.2,1);
+    display:flex;flex-direction:column;
+  }
+  .panel.open{transform:translateX(0)}
+  .panel-head{padding:26px 28px 20px;border-bottom:1px solid var(--line);position:relative}
+  .panel-tag{
+    font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--pc,var(--text-dim));display:flex;align-items:center;gap:8px;margin-bottom:12px;
+  }
+  .panel-tag::before{content:'';width:8px;height:8px;border-radius:2px;background:var(--pc,var(--text-dim))}
+  .panel-title{font-family:var(--display);font-weight:600;font-size:23px;letter-spacing:-.01em;line-height:1.12}
+  .panel-sub{font-size:13.5px;color:var(--text-mid);margin-top:8px}
+  .panel-close{
+    position:absolute;top:22px;right:22px;width:34px;height:34px;border-radius:8px;
+    background:var(--card);border:1px solid var(--line);color:var(--text-mid);cursor:pointer;
+    font-size:17px;line-height:1;transition:color .2s,border-color .2s;
+  }
+  .panel-close:hover{color:var(--text-hi);border-color:var(--line-hi)}
+  .panel-body{padding:8px 28px 40px;overflow-y:auto;flex:1}
+  .field{padding:19px 0;border-bottom:1px solid var(--line)}
+  .field:last-child{border-bottom:none}
+  .field h4{
+    font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+    color:var(--text-dim);margin-bottom:9px;font-weight:500;
+  }
+  .field.limit h4{color:var(--coral)}
+  .field p{font-size:14.5px;color:var(--text-mid)}
+  .field p strong{color:var(--text-hi);font-weight:600}
+  .field.limit p{color:#D9AAA0}
+  .endpoints{display:flex;align-items:center;gap:10px;margin-top:4px}
+  .endpoints .ep{font-family:var(--display);font-weight:500;font-size:14px;color:var(--text-hi);display:flex;align-items:center;gap:7px}
+  .endpoints .ep i{width:9px;height:9px;border-radius:2px;font-style:normal}
+  .endpoints .vs{font-family:var(--mono);font-size:11px;color:var(--text-dim)}
+
+  /* ---------- footer ---------- */
+  footer{border-top:1px solid var(--line);margin-top:56px;padding:30px 0 60px}
+  .foot-grid{display:flex;flex-wrap:wrap;gap:20px;justify-content:space-between;align-items:baseline}
+  .foot-note{font-size:12.5px;color:var(--text-dim);max-width:58ch}
+  .foot-note code{font-family:var(--mono);color:var(--text-mid);font-size:12px}
+  .stamp{font-family:var(--mono);font-size:11px;color:var(--text-dim);letter-spacing:.08em}
+
+  @media(max-width:760px){
+    header{padding:44px 0 12px}
+    .board{display:none}
+    .hint{display:none}
+    .controls{flex-direction:column;align-items:flex-start}
+    .mobile-actors{display:grid;gap:12px;margin-top:8px}
+    .rail{margin-top:34px}
+  }
+  @media(min-width:761px){.mobile-actors{display:none}}
+  .m-card{background:var(--card);border:1px solid var(--line-hi);border-left:3px solid var(--fc);
+    border-radius:10px;padding:15px 16px;text-align:left;cursor:pointer;color:var(--text-hi);width:100%;font-family:var(--body)}
+  .m-card .n-tag{font-family:var(--mono);font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--fc);margin-bottom:7px}
+  .m-card .n-name{font-family:var(--display);font-weight:600;font-size:16px}
+  .m-card .n-essence{font-size:12.5px;color:var(--text-mid);margin-top:3px}
+
+  @media(prefers-reduced-motion:reduce){
+    .edge-flow{animation:none;opacity:.3}
+    *{transition-duration:.01ms!important}
+  }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="kicker"><span class="bar"></span>AI Governance · Unit 01 · The Board</div>
+      <h1>Everyone here has more power than you'd think — and is more <em>boxed in</em> than they'd admit.</h1>
+      <p class="lede">The race to build advanced AI isn't one story — it's <strong>four actors</strong> pulling against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.</p>
+    </header>
+
+    <div class="controls">
+      <div class="legend" id="legend"></div>
+      <button class="lens-toggle" id="lens" aria-pressed="false" title="Reframe every actor around what constrains it">
+        <span class="pip"></span>Constraints lens
+      </button>
+    </div>
+  </div>
+
+  <div class="wrap stage">
+    <div class="board" id="board" aria-hidden="false">
+      <svg id="edges" preserveAspectRatio="none" aria-hidden="true"></svg>
+    </div>
+    <div class="mobile-actors" id="mobileActors"></div>
+    <p class="hint" id="hint">Tap an actor to open its card · tap a line to read the tension · flip the lens to surface constraints</p>
+
+    <div class="rail">
+      <div class="rail-label">The tensions — what pulls against what</div>
+      <div class="tension-chips" id="chips"></div>
+    </div>
+  </div>
+
+  <div class="wrap">
+    <footer>
+      <div class="foot-grid">
+        <p class="foot-note">
+          A working prototype — the first unit in a growing set of visual explainers for AI governance.
+          The structure here (who each actor is, wants, fears, and what limits them) is durable; anything time-sensitive lives in a dated margin, never the core.
+          Actor content adapted from the <code>AGI Strategy: Character Cards</code>.
+        </p>
+        <span class="stamp">STRUCTURE · NOT NEWS</span>
+      </div>
+    </footer>
+  </div>
+
+  <div class="scrim" id="scrim"></div>
+  <aside class="panel" id="panel" role="dialog" aria-modal="true" aria-labelledby="panelTitle" tabindex="-1">
+    <div class="panel-head">
+      <div class="panel-tag" id="panelTag">Actor</div>
+      <h2 class="panel-title" id="panelTitle">—</h2>
+      <p class="panel-sub" id="panelSub"></p>
+      <button class="panel-close" id="close" aria-label="Close">✕</button>
+    </div>
+    <div class="panel-body" id="panelBody"></div>
+  </aside>
+
+<script>
+const FACTIONS = {
+  power:  {color:'var(--gold)',   name:'Great Powers'},
+  labs:   {color:'var(--indigo)', name:'AI Companies'},
+  talent: {color:'var(--teal)',   name:'Top AI Talent'},
+  public: {color:'var(--coral)',  name:'The Public'}
+};
+
+const ACTORS = {
+  power:{
+    tag:'Government', name:'Great Powers', essence:'US & China — leverage at global scale',
+    x:28, y:24,
+    fields:[
+      ['Who they are','The most powerful states on Earth — the <strong>US and China</strong> — projecting influence through military, economic, diplomatic and cultural power.'],
+      ['What they want','<strong>US:</strong> hold technological supremacy, contain China\'s AI, protect security without smothering innovation. <strong>China:</strong> reach self-sufficiency, break the US chip chokehold, and lead the world in AI through state direction.'],
+      ['What they fear','The other side reaching a <strong>decisive AI advantage</strong> — and a drawn-out tech cold war that stalls their own growth.'],
+      ['What they can do','Export controls, vast state investment (CHIPS Act, Made in China 2025), talent and immigration policy, standard-setting, and military AI.'],
+      ['What limits them','<strong>US:</strong> checks and balances, industry lobbying, thin domestic chip fabrication, constrained power supply. <strong>China:</strong> state entanglement dulling competitiveness, brain drain, still-maturing chip manufacturing.',true]
+    ]
+  },
+  labs:{
+    tag:'Executive', name:'AI Companies', essence:'The frontier labs — velocity',
+    x:74, y:28,
+    fields:[
+      ['Who they are','The <strong>frontier labs</strong> — OpenAI, Google DeepMind, Anthropic — training the most capable systems. US-based, multi-billion-dollar valuations, a few thousand staff each.'],
+      ['What they want','Reach AGI first and capture the value; keep public trust while limiting rules that slow them; secure the talent, compute and data to keep scaling.'],
+      ['What they fear','A <strong>large-scale accident</strong> that torches trust and invites harsh regulation; building a <strong>misaligned</strong> system that slips human control; losing the race to a rival — worse, a Chinese one.'],
+      ['What they can do','Set de facto standards through model releases, lobby government, shape public discourse, and fund safety research.'],
+      ['What limits them','Enormous compute costs, brutal talent competition (Meta dangling $100M packages), internal safety-vs-speed rifts, relentless competitive pressure, and rising regulation.',true]
+    ]
+  },
+  talent:{
+    tag:'Researcher', name:'Top AI Talent', essence:'The few who actually build it',
+    x:26, y:75,
+    fields:[
+      ['Who they are','A small pool of <strong>highly-paid researchers and engineers</strong> who actually build the systems — mostly ex–Big Tech, deep in ML and software.'],
+      ['What they want','Technical glory, influence over the trajectory, autonomy, a lasting legacy — and life-changing <strong>wealth</strong>.'],
+      ['What they fear','That what they build <strong>harms the people they love</strong>; that their lab loses and their work and equity evaporate; that their side loses the internal speed-vs-safety fight.'],
+      ['What they can do','Make technical and architectural choices that tilt safety against capability; speak out on risk and timelines; resign or blow the whistle.'],
+      ['What limits them','Little say over deployment once a system is built — and contracts, NDAs, competitive pressure, and public scrutiny of everything they say.',true]
+    ]
+  },
+  public:{
+    tag:'Civil society', name:'The Public', essence:'Numbers — poorly coordinated',
+    x:72, y:78,
+    fields:[
+      ['Who they are','Voters and civil-society groups in democracies — especially the <strong>US and UK</strong> — who can move governments.'],
+      ['What they want','Job security, transparency and the ability to opt out, and a <strong>fair share of the gains</strong> rather than power pooling in a few hands.'],
+      ['What they fear','Fast AI-driven <strong>job loss with no safety net</strong>, an all-seeing surveillance state, and fraying community and relationships.'],
+      ['What they can do','Vote and apply political pressure, make market choices, organize through advocacy, and opt out where they still can.'],
+      ['What limits them','Technical opacity and huge <strong>information asymmetry</strong>, mixed feelings about AI, polarization, pressure to use AI at work, and weak collective coordination.',true]
+    ]
+  }
+};
+
+const TENSIONS = [
+  {a:'power', b:'labs',   title:'Leash vs. autonomy',
+   text:'States want to <strong>harness and contain</strong> AI for national security; labs want room to move. It plays out through export controls, military contracts, and lobbying — each side needing the other, neither fully trusting it.'},
+  {a:'labs', b:'talent',  title:'Fast vs. safe',
+   text:'The <strong>core internal rift</strong>. Researchers hold real leverage — comp wars, resignations, whistleblowing — but almost no control once a system ships. The speed-vs-safety fight inside each lab is fought largely by this group.'},
+  {a:'labs', b:'public',  title:'Opacity vs. accountability',
+   text:'The public <strong>bears the disruption</strong> — jobs, bias, surveillance — but can\'t see inside the systems. Trust is the currency; information asymmetry is the problem. Lose the trust and the regulation the labs fear arrives.'},
+  {a:'power', b:'public', title:'Mandate vs. control',
+   text:'Democratic publics push for <strong>regulation and a safety net</strong>; governments weigh that against not smothering a strategic industry. Two-thirds of Americans want AI rules — but that pressure is diffuse and easy to defer.'},
+  {a:'power', b:'talent', title:'National asset vs. free agent',
+   text:'Elite talent is a <strong>strategic resource</strong> — hence immigration, retention and education policy — but individuals move, speak, and exit on their own terms. Brain drain and defection are levers no state fully controls.'},
+  {a:'talent', b:'public',title:'Who builds, who bears it',
+   text:'The <strong>few who build</strong> carry consequences the <strong>many will live with</strong>. A quiet edge, but the whole board\'s legitimacy question sits on it: should so much ride on so few hands?'}
+];
+
+const board=document.getElementById('board');
+const svg=document.getElementById('edges');
+const SVGNS='http://www.w3.org/2000/svg';
+let selectedActor=null;
+
+// legend
+const legend=document.getElementById('legend');
+Object.entries(FACTIONS).forEach(([k,f])=>{
+  const el=document.createElement('div');
+  el.className='legend-item';
+  el.innerHTML=`<span class="dot" style="background:${f.color}"></span>${f.name}`;
+  legend.appendChild(el);
+});
+
+// nodes
+const nodeEls={};
+Object.entries(ACTORS).forEach(([key,a])=>{
+  const b=document.createElement('button');
+  b.className='node';b.style.left=a.x+'%';b.style.top=a.y+'%';
+  b.style.setProperty('--fc',FACTIONS[key].color);
+  b.setAttribute('aria-label',`${a.name} — open card`);
+  b.innerHTML=`<span class="n-tag">${a.tag}</span>
+    <span class="n-name">${a.name}</span>
+    <span class="n-essence">${a.essence}</span>
+    <span class="n-limit">${a.fields.find(f=>f[2])[1].replace(/<[^>]+>/g,'')}</span>`;
+  b.addEventListener('click',()=>openActor(key));
+  board.appendChild(b);nodeEls[key]=b;
+});
+
+// mobile cards
+const mob=document.getElementById('mobileActors');
+Object.entries(ACTORS).forEach(([key,a])=>{
+  const b=document.createElement('button');
+  b.className='m-card';b.style.setProperty('--fc',FACTIONS[key].color);
+  b.innerHTML=`<div class="n-tag">${a.tag}</div><div class="n-name">${a.name}</div><div class="n-essence">${a.essence}</div>`;
+  b.addEventListener('click',()=>openActor(key));
+  mob.appendChild(b);
+});
+
+// edges
+const edgeEls=[];
+function buildEdges(){
+  svg.innerHTML='';edgeEls.length=0;
+  const W=board.clientWidth,H=board.clientHeight;
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  TENSIONS.forEach((t,i)=>{
+    const A=ACTORS[t.a],B=ACTORS[t.b];
+    const x1=A.x/100*W,y1=A.y/100*H,x2=B.x/100*W,y2=B.y/100*H;
+    const hit=document.createElementNS(SVGNS,'line');
+    hit.setAttribute('class','edge-hit');
+    setLine(hit,x1,y1,x2,y2);
+    const base=document.createElementNS(SVGNS,'line');
+    base.setAttribute('class','edge');setLine(base,x1,y1,x2,y2);
+    const flow=document.createElementNS(SVGNS,'line');
+    flow.setAttribute('class','edge-flow');setLine(flow,x1,y1,x2,y2);
+    const grad=`url(#g${i})`;
+    flow.style.stroke=blend(FACTIONS[t.a].color,FACTIONS[t.b].color);
+    [hit,base].forEach(e=>{e.style.cursor='pointer';e.addEventListener('click',()=>openTension(i));});
+    svg.appendChild(base);svg.appendChild(flow);svg.appendChild(hit);
+    edgeEls.push({base,flow,t});
+  });
+}
+function setLine(l,x1,y1,x2,y2){l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);}
+function blend(a,b){return getComputedStyle(document.documentElement).getPropertyValue(a.match(/--[\w-]+/)[0]).trim();}
+
+// chips
+const chips=document.getElementById('chips');
+TENSIONS.forEach((t,i)=>{
+  const c=document.createElement('button');
+  c.className='chip';
+  c.innerHTML=`<span class="g" style="background:${FACTIONS[t.a].color}"></span><span class="g2" style="background:${FACTIONS[t.b].color}"></span>${t.title}`;
+  c.addEventListener('click',()=>openTension(i));
+  chips.appendChild(c);
+});
+
+// interactions
+function highlightActor(key){
+  Object.entries(nodeEls).forEach(([k,el])=>{
+    el.classList.toggle('selected',k===key);
+    el.classList.toggle('dim',key!==null&&k!==key);
+  });
+  edgeEls.forEach(({base,flow,t})=>{
+    const on=key===null||t.a===key||t.b===key;
+    base.classList.toggle('active',key!==null&&on);
+    base.classList.toggle('dim',key!==null&&!on);
+    flow.classList.toggle('dim',key!==null&&!on);
+  });
+}
+
+const panel=document.getElementById('panel');
+const scrim=document.getElementById('scrim');
+const pTag=document.getElementById('panelTag');
+const pTitle=document.getElementById('panelTitle');
+const pSub=document.getElementById('panelSub');
+const pBody=document.getElementById('panelBody');
+let lastFocus=null;
+
+function openActor(key){
+  const a=ACTORS[key],f=FACTIONS[key];
+  selectedActor=key;highlightActor(key);
+  panel.style.setProperty('--pc',f.color);
+  pTag.textContent=a.tag+' · Actor';
+  pTitle.textContent=a.name;
+  pSub.textContent=a.essence;
+  pBody.innerHTML=a.fields.map(fl=>
+    `<div class="field ${fl[2]?'limit':''}"><h4>${fl[0]}</h4><p>${fl[1]}</p></div>`
+  ).join('');
+  showPanel();
+}
+function openTension(i){
+  const t=TENSIONS[i],fa=FACTIONS[t.a],fb=FACTIONS[t.b];
+  selectedActor=null;
+  // light both endpoints
+  Object.entries(nodeEls).forEach(([k,el])=>{
+    el.classList.toggle('selected',k===t.a||k===t.b);
+    el.classList.toggle('dim',!(k===t.a||k===t.b));
+  });
+  edgeEls.forEach(({base,flow,t:tt},idx)=>{
+    base.classList.toggle('active',idx===i);
+    base.classList.toggle('dim',idx!==i);
+    flow.classList.toggle('dim',idx!==i);
+  });
+  panel.style.setProperty('--pc','var(--text-mid)');
+  pTag.textContent='Tension';
+  pTitle.textContent=t.title;
+  pSub.innerHTML='';
+  pBody.innerHTML=
+    `<div class="field"><h4>Between</h4>
+      <div class="endpoints">
+        <span class="ep"><i style="background:${fa.color}"></i>${fa.name}</span>
+        <span class="vs">pulls against</span>
+        <span class="ep"><i style="background:${fb.color}"></i>${fb.name}</span>
+      </div></div>
+     <div class="field"><h4>What's in tension</h4><p>${t.text}</p></div>`;
+  showPanel();
+}
+function showPanel(){
+  lastFocus=document.activeElement;
+  panel.classList.add('open');scrim.classList.add('open');
+  panel.focus();
+}
+function closePanel(){
+  panel.classList.remove('open');scrim.classList.remove('open');
+  selectedActor=null;highlightActor(null);
+  if(lastFocus)lastFocus.focus();
+}
+document.getElementById('close').addEventListener('click',closePanel);
+scrim.addEventListener('click',closePanel);
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closePanel();});
+
+// lens
+const lens=document.getElementById('lens');
+lens.addEventListener('click',()=>{
+  const on=lens.getAttribute('aria-pressed')==='true';
+  lens.setAttribute('aria-pressed',String(!on));
+  document.body.classList.toggle('lens',!on);
+});
+
+// resize
+let raf;
+function onResize(){cancelAnimationFrame(raf);raf=requestAnimationFrame(buildEdges);}
+window.addEventListener('resize',onResize);
+buildEdges();
+</script>
+</body>
+</html>
