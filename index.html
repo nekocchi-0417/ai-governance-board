@@ -22,6 +22,7 @@
     --indigo:#9488E0;
     --teal:#57C2A8;
     --coral:#E28C7B;
+    --sky:#6EA6DA;
     --display:'Space Grotesk',sans-serif;
     --body:'IBM Plex Sans',sans-serif;
     --mono:'IBM Plex Mono',monospace;
@@ -97,6 +98,25 @@
   .lens-toggle[aria-pressed="true"] .pip{background:rgba(226,140,123,.35)}
   .lens-toggle[aria-pressed="true"] .pip::after{transform:translateX(14px);background:var(--coral)}
 
+  /* ---------- mode switch ---------- */
+  .modebar{padding-top:30px}
+  .modeswitch{
+    display:inline-flex;background:var(--card);border:1px solid var(--line);
+    border-radius:999px;padding:4px;gap:3px;
+  }
+  .mode-btn{
+    font-family:var(--mono);font-size:12px;letter-spacing:.03em;
+    color:var(--text-mid);background:none;border:none;border-radius:999px;
+    padding:8px 17px;cursor:pointer;transition:background .2s,color .2s;white-space:nowrap;
+  }
+  .mode-btn:hover{color:var(--text-hi)}
+  .mode-btn[aria-selected="true"]{
+    background:var(--card-hi);color:var(--text-hi);
+    box-shadow:0 1px 3px rgba(0,0,0,.3);
+  }
+  .mode-btn .cnt{color:var(--text-dim);margin-left:7px}
+  .mode-btn[aria-selected="true"] .cnt{color:var(--gold)}
+
   /* ---------- board ---------- */
   .stage{padding:34px 0 10px}
   .board{
@@ -150,14 +170,37 @@
     color:var(--fc);display:flex;align-items:center;gap:7px;margin-bottom:9px;
   }
   .node .n-tag::before{content:'';width:7px;height:7px;border-radius:2px;background:var(--fc)}
-  .node .n-name{font-family:var(--display);font-weight:600;font-size:16px;line-height:1.15;letter-spacing:-.01em}
-  .node .n-essence{font-size:12.5px;color:var(--text-mid);margin-top:4px}
+  .node .n-name{display:block;font-family:var(--display);font-weight:600;font-size:16px;line-height:1.15;letter-spacing:-.01em}
+  .node .n-essence{display:block;font-size:12.5px;color:var(--text-mid);margin-top:4px}
   .node .n-limit{
+    display:block;
     font-size:11.5px;color:var(--coral);margin-top:9px;line-height:1.35;
     max-height:0;overflow:hidden;opacity:0;transition:max-height .3s,opacity .25s,margin .3s;
   }
   body.lens .node .n-essence{opacity:.35;transition:opacity .25s}
   body.lens .node .n-limit{max-height:60px;opacity:1}
+
+  /* ecosystem view — taller board, denser compact nodes */
+  .board.eco{aspect-ratio:16/11.4}
+  .node.compact{width:150px;padding:11px 12px 10px}
+  .node.compact .n-tag{font-size:9.5px;letter-spacing:.11em;margin-bottom:6px;gap:6px}
+  .node.compact .n-tag::before{width:6px;height:6px}
+  .node.compact .n-name{font-size:14px;line-height:1.12}
+  .node.compact .n-essence{font-size:11px;margin-top:3px}
+  .node.compact .n-limit{font-size:11px;margin-top:7px}
+  /* in the dense ecosystem, the lens swaps essence→constraint (clamped) so nodes don't grow & collide */
+  body.lens .node.compact .n-essence{display:none}
+  body.lens .node.compact .n-limit{
+    max-height:44px;opacity:1;margin-top:4px;
+    display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden;
+  }
+  @media(max-width:1040px) and (min-width:761px){
+    .board.eco{aspect-ratio:16/14}
+    .node.compact{width:134px;padding:9px 10px 8px}
+    .node.compact .n-tag{font-size:9px;margin-bottom:5px}
+    .node.compact .n-name{font-size:13px}
+    .node.compact .n-essence{font-size:10px}
+  }
 
   .hint{
     text-align:center;font-family:var(--mono);font-size:12px;color:var(--text-dim);
@@ -181,6 +224,7 @@
   .chip:focus-visible{outline:2px solid #fff;outline-offset:2px}
   .chip .g{width:8px;height:8px;border-radius:2px;flex:none}
   .chip .g2{width:8px;height:8px;border-radius:2px;flex:none;margin-left:-15px}
+  .chip .arw{font-family:var(--mono);font-size:12px;color:var(--text-dim);margin:0 -3px}
 
   /* ---------- detail panel ---------- */
   .scrim{position:fixed;inset:0;background:rgba(8,11,18,.6);opacity:0;pointer-events:none;
@@ -256,8 +300,15 @@
     <header>
       <div class="kicker"><span class="bar"></span>AI Governance · Unit 01 · The Board</div>
       <h1>Everyone here has more power than you'd think — and is more <em>boxed in</em> than they'd admit.</h1>
-      <p class="lede">The race to build advanced AI isn't one story — it's <strong>four actors</strong> pulling against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.</p>
+      <p class="lede" id="lede">The race to build advanced AI isn't one story — it's <strong>four actors</strong> pulling against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.</p>
     </header>
+
+    <div class="modebar">
+      <div class="modeswitch" role="tablist" aria-label="Choose a view">
+        <button class="mode-btn" id="modeBoard" role="tab" aria-selected="true">The Board<span class="cnt">4</span></button>
+        <button class="mode-btn" id="modeEco" role="tab" aria-selected="false">The Ecosystem<span class="cnt">15</span></button>
+      </div>
+    </div>
 
     <div class="controls">
       <div class="legend" id="legend"></div>
@@ -275,7 +326,7 @@
     <p class="hint" id="hint">Tap an actor to open its card · tap a line to read the tension · flip the lens to surface constraints</p>
 
     <div class="rail">
-      <div class="rail-label">The tensions — what pulls against what</div>
+      <div class="rail-label" id="railLabel">The tensions — what pulls against what</div>
       <div class="tension-chips" id="chips"></div>
     </div>
   </div>
@@ -286,7 +337,7 @@
         <p class="foot-note">
           A working prototype — the first unit in a growing set of visual explainers for AI governance.
           The structure here (who each actor is, wants, fears, and what limits them) is durable; anything time-sensitive lives in a dated margin, never the core.
-          Actor content adapted from the <code>AGI Strategy: Character Cards</code>.
+          Board actors adapted from the <code>AGI Strategy: Character Cards</code>; the ecosystem view is adapted from the IAPP report <code>Mapping and understanding the AI governance ecosystem</code>.
         </p>
         <span class="stamp">STRUCTURE · NOT NEWS</span>
       </div>
@@ -310,6 +361,15 @@ const FACTIONS = {
   labs:   {color:'var(--indigo)', name:'AI Companies'},
   talent: {color:'var(--teal)',   name:'Top AI Talent'},
   public: {color:'var(--coral)',  name:'The Public'}
+};
+
+// ---- Ecosystem view groups (adapted from the IAPP AI governance map) ----
+const ECO_GROUPS = {
+  valuechain:{color:'var(--indigo)', name:'Value chain'},
+  rulemakers:{color:'var(--gold)',   name:'Rule-makers'},
+  shapers:   {color:'var(--teal)',   name:'Shapers'},
+  enablers:  {color:'var(--coral)',  name:'Market enablers'},
+  recipients:{color:'var(--sky)',    name:'Recipients'}
 };
 
 const ACTORS = {
@@ -374,80 +434,324 @@ const TENSIONS = [
    text:'The <strong>few who build</strong> carry consequences the <strong>many will live with</strong>. A quiet edge, but the whole board\'s legitimacy question sits on it: should so much ride on so few hands?'}
 ];
 
+// ---- Ecosystem actors — IAPP taxonomy in the character-card format ----
+const ECO_ACTORS = {
+  developers:{
+    tag:'Value chain', name:'Developers', essence:'Build the models & systems', group:'valuechain',
+    x:39, y:39,
+    fields:[
+      ['Who they are','The organizations that <strong>create AI systems and general-purpose models</strong> — from large tech companies to small AI-focused startups. Under the EU AI Act they map to "providers," who carry the heaviest obligations in the value chain.'],
+      ['What they want','Ship capable models fast, capture market share and platform lock-in, and keep the freedom to iterate without rules that slow releases.'],
+      ['What they fear','A costly compliance regime, liability for downstream harms, and losing the frontier to a better-funded rival.'],
+      ['What they can do','Set de facto norms through what they release and document, choose training data and guardrails, and shape standards and policy through lobbying.'],
+      ['What limits them','Provider-level legal duties (documentation, conformity, CE marking under the EU AI Act), heavy compute and talent costs, and dependence on input suppliers.',true]
+    ]
+  },
+  deployers:{
+    tag:'Value chain', name:'Deployers', essence:'Put AI to work in organizations', group:'valuechain',
+    x:39, y:55,
+    fields:[
+      ['Who they are','Organizations of every size — large, medium and small — that <strong>deploy AI systems in their own operations</strong>, under their own authority. The EU AI Act calls them "deployers."'],
+      ['What they want','Efficiency, cost savings and competitive edge from AI, with minimal integration friction and clear rules of use.'],
+      ['What they fear','Deploying a system that produces biased, unsafe or non-compliant outcomes — and being held responsible for it.'],
+      ['What they can do','Choose which systems to adopt, set usage policies, keep humans in the loop, and report serious incidents up the chain.'],
+      ['What limits them','Must follow providers\' instructions for use, monitor operation, and notify authorities of serious incidents within days — with little visibility into how the model was built.',true]
+    ]
+  },
+  distributors:{
+    tag:'Value chain', name:'Distributors', essence:'License, import & integrate', group:'valuechain',
+    x:61, y:39,
+    fields:[
+      ['Who they are','The <strong>importers and integrators</strong> that license, import or integrate AI models into products brought to market — the connective tissue of the supply chain.'],
+      ['What they want','A smooth path to market for the products they carry, and clarity on who owns which compliance duty.'],
+      ['What they fear','Being reclassified as a "provider" — and inheriting its full obligations — through rebranding or substantial modification.'],
+      ['What they can do','Verify that documentation and conformity declarations are present before distributing, and cooperate with authorities.'],
+      ['What limits them','Compliance duties triggered on the EU market, and a role that flips to full provider if they put their name on a system or modify it substantially.',true]
+    ]
+  },
+  inputs:{
+    tag:'Value chain', name:'AI input suppliers', essence:'Supply data, models & compute', group:'valuechain',
+    x:61, y:55,
+    fields:[
+      ['Who they are','The suppliers of the <strong>essential inputs</strong> for building and running AI — training data, foundation models and computing infrastructure. They broker data, lease data centers and research model architectures.'],
+      ['What they want','Durable demand for compute, data and models — and to sit at a chokepoint of the value chain.'],
+      ['What they fear','Supply gluts, export controls on chips, and scrutiny over how training data was sourced.'],
+      ['What they can do','Gate access to scarce compute and data, set pricing and terms, and steer research on AI model types.'],
+      ['What limits them','Capital-intensive infrastructure, energy and hardware constraints, export restrictions, and rising data-provenance and copyright pressure.',true]
+    ]
+  },
+  legislators:{
+    tag:'Rule-makers', name:'Legislators', essence:'Write the laws', group:'rulemakers',
+    x:11, y:32,
+    fields:[
+      ['Who they are','Elected <strong>lawmakers</strong> — national parliaments and state assemblies — tasked with enacting legislation that reflects the will of their constituents.'],
+      ['What they want','Rules that protect the public and reflect voters, without smothering a strategically important industry.'],
+      ['What they fear','Legislating too slowly for a fast-moving technology — or too bluntly, and stifling innovation or missing the mark.'],
+      ['What they can do','Pass binding law (the EU AI Act, US state AI bills), fund oversight, and define the mandates regulators enforce.'],
+      ['What limits them','Slow legislative cycles, technical complexity, heavy industry lobbying, and jurisdiction that stops at the border.',true]
+    ]
+  },
+  regulators:{
+    tag:'Rule-makers', name:'Regulators', essence:'Implement & enforce', group:'rulemakers',
+    x:11, y:47,
+    fields:[
+      ['Who they are','<strong>Nonelected governmental bodies</strong> — digital ministries, communications and data-protection authorities — charged with implementing and enforcing the rules set out in legislation.'],
+      ['What they want','Effective, credible enforcement and compliance across a complex, fast-changing market.'],
+      ['What they fear','Being outpaced by the technology, under-resourced for the task, or captured by the industry they oversee.'],
+      ['What they can do','Issue guidance, investigate, audit, fine and sanction — shaping how the law actually bites in practice.'],
+      ['What limits them','Powers bounded by their enabling legislation, thin technical staffing and budgets, and information asymmetry versus developers.',true]
+    ]
+  },
+  standards:{
+    tag:'Rule-makers', name:'Standard setters', essence:'Create the technical standards', group:'rulemakers',
+    x:11, y:62,
+    fields:[
+      ['Who they are','Bodies that exist <strong>outside national government</strong> — like ISO/IEC and NIST — to set shared standards and terminology so organizations can work together and demonstrate trustworthy AI.'],
+      ['What they want','Broad adoption of common, interoperable standards that become the reference point for good practice.'],
+      ['What they fear','Fragmentation into competing national standards, or standards that lag the technology and lose relevance.'],
+      ['What they can do','Create and refine standards (ISO/IEC 42001, the NIST AI RMF) that regulators and buyers lean on as benchmarks.'],
+      ['What limits them','Standards are voluntary unless law cites them, consensus processes are slow, and they hold no enforcement power of their own.',true]
+    ]
+  },
+  research:{
+    tag:'Shapers', name:'Research institutes', essence:'Lead understanding of AI', group:'shapers',
+    x:24, y:12,
+    fields:[
+      ['Who they are','AI <strong>research institutes</strong> in universities and large technology companies that lead understanding of AI use, risks and governance best practice — varied in focus and scope.'],
+      ['What they want','Advance the science, shape the agenda on risk and safety, and see their findings inform policy and practice.'],
+      ['What they fear','Being ignored by decision-makers, losing independence to their funders, or research being outrun by deployment.'],
+      ['What they can do','Study innovative AI (agentic systems, catastrophic-risk mitigation, infrastructure), publish, and advise governments and firms.'],
+      ['What limits them','Funding dependence, a slower cadence than industry, and little power to compel anyone to act on their conclusions.',true]
+    ]
+  },
+  intlorgs:{
+    tag:'Shapers', name:'International organizations', essence:'Convene across borders', group:'shapers',
+    x:44, y:11,
+    fields:[
+      ['Who they are','Bodies that <strong>convene AI conversations across jurisdictions</strong> — a forum to develop common principles, share best practice and coordinate multilateral agreements.'],
+      ['What they want','Harmonization and interoperability across borders, so governance doesn\'t fragment jurisdiction by jurisdiction.'],
+      ['What they fear','Geopolitical deadlock, forum-shopping, and principles that states sign but never implement.'],
+      ['What they can do','Host convenings (UN General Assembly, G7), develop principles (OECD AI Principles, Codes of Practice), and negotiate treaties (the Council of Europe AI treaty).'],
+      ['What limits them','No supranational enforcement — outputs bind only as far as members choose to adopt them; consensus is hard and slow.',true]
+    ]
+  },
+  civil:{
+    tag:'Shapers', name:'Civil society', essence:'Advocate for the public interest', group:'shapers',
+    x:64, y:12,
+    fields:[
+      ['Who they are','<strong>Advocacy groups and civil-rights organizations</strong> that advocate for policy objectives, research public-interest issues, and provide guidance to organizations.'],
+      ['What they want','AI that protects rights, fairness and the vulnerable — and a real seat at the table in how it\'s governed.'],
+      ['What they fear','Being out-resourced by industry, sidelined in decisions, and harms landing on the communities they represent.'],
+      ['What they can do','Campaign, litigate, research, mobilize public opinion, and pressure both governments and companies.'],
+      ['What limits them','Limited funding and access relative to industry, and reliance on persuasion and pressure rather than formal power.',true]
+    ]
+  },
+  assurance:{
+    tag:'Market enablers', name:'Assurance & tool vendors', essence:'Audit, test & tool governance', group:'enablers',
+    x:89, y:24,
+    fields:[
+      ['Who they are','Vendors that <strong>fill assurance gaps</strong> and supply the tooling for AI governance — an emerging market projected to be worth billions by 2030.'],
+      ['What they want','A large, durable market for assurance as governance obligations turn into demand for audits and tools.'],
+      ['What they fear','A race to the bottom on rigor, conflicts of interest, and "governance-washing" that erodes trust in assurance itself.'],
+      ['What they can do','Provide governance, risk and compliance tools, conduct external audits, test and evaluate systems, and review code and data.'],
+      ['What limits them','Assurance is only as strong as the standards behind it; access to models and data is often limited, and independence must be managed.',true]
+    ]
+  },
+  services:{
+    tag:'Market enablers', name:'Service & advisory vendors', essence:'Advise on law & compliance', group:'enablers',
+    x:89, y:40,
+    fields:[
+      ['Who they are','Vendors that <strong>support legal, management and compliance efforts</strong> — law firms, consultancies and advisers on AI governance.'],
+      ['What they want','Steady demand for advisory work as organizations scramble to meet new obligations.'],
+      ['What they fear','Commoditization of advice, and clients who treat compliance as a checkbox rather than a program.'],
+      ['What they can do','Provide legal advice and accreditation, and advise on AI governance frameworks and process orchestration.'],
+      ['What limits them','Advisory only — they guide but don\'t control outcomes; quality and independence vary across a crowded market.',true]
+    ]
+  },
+  associations:{
+    tag:'Market enablers', name:'Professional associations', essence:'Train & certify the profession', group:'enablers',
+    x:89, y:56,
+    fields:[
+      ['Who they are','Associations offering <strong>professional guidance</strong> to the AI-governance field through research, conferences and certification programs.'],
+      ['What they want','To professionalize AI governance and become the recognized home for its practitioners.'],
+      ['What they fear','Certifications that don\'t keep pace with the field, or fragmentation across competing credentials.'],
+      ['What they can do','Organize conferences and events, provide certifications, and build community and shared knowledge.'],
+      ['What limits them','Influence is soft — they set norms and credentials, not law; adoption depends on employers valuing them.',true]
+    ]
+  },
+  investors:{
+    tag:'Market enablers', name:'Shareholders & investors', essence:'Fund innovation, expect returns', group:'enablers',
+    x:89, y:71,
+    fields:[
+      ['Who they are','<strong>Hedge funds, venture-capital and pension funds, and founders</strong> who ensure companies invest adequately in innovation while avoiding losses and minimizing risk.'],
+      ['What they want','Companies that raise efficiency and returns through AI while managing the associated risks — growth with guardrails.'],
+      ['What they fear','Value destruction from an AI failure, a regulatory shock, or a bubble that bursts.'],
+      ['What they can do','Direct capital toward or away from AI bets, set expectations on risk and returns, and press boards on governance.'],
+      ['What limits them','Short-term return pressure can cut against careful governance, and they have limited visibility into technical risk inside portfolio companies.',true]
+    ]
+  },
+  endusers:{
+    tag:'Recipients', name:'End users', essence:'Use it & live with the results', group:'recipients',
+    x:46, y:86,
+    fields:[
+      ['Who they are','The <strong>people and organizations who use AI-enabled products</strong> and live with their outcomes — the end of the value chain the whole ecosystem serves.'],
+      ['What they want','Useful, safe, fairly-priced products they can trust — and some say over how AI affects their lives.'],
+      ['What they fear','Harm, manipulation, bias or opacity in the products they rely on, with little recourse.'],
+      ['What they can do','Exert direct and indirect consumer influence — adopt or reject products, complain, switch, and shape demand.'],
+      ['What limits them','Information asymmetry, limited alternatives, and little formal power beyond the market and the ballot box.',true]
+    ]
+  }
+};
+
+// ---- Ecosystem flows — directional "who provides what to whom" ----
+const ECO_RELATIONS = [
+  {a:'research', b:'legislators', title:'Provide research insights & advocacy',
+   text:'Research institutes feed evidence on AI use, risk and best practice into the people who write the law — shaping what gets regulated and how.'},
+  {a:'intlorgs', b:'developers', title:'Provide research insights & advocacy',
+   text:'International bodies push common principles and guidance (OECD, G7, Council of Europe) down into the practices of those building AI.'},
+  {a:'civil', b:'developers', title:'Provide research insights & advocacy',
+   text:'Civil society researches public-interest harms and advocates directly to developers for fairer, safer systems.'},
+  {a:'regulators', b:'developers', title:'Set rules',
+   text:'Regulators translate legislation into enforceable requirements that developers must build against.'},
+  {a:'standards', b:'deployers', title:'Set standards',
+   text:'Standard setters supply the shared benchmarks (ISO/IEC 42001, the NIST AI RMF) that deployers adopt to show trustworthy use.'},
+  {a:'developers', b:'legislators', title:'Inform rules',
+   text:'Developers feed technical reality — and lobbying — back to lawmakers, shaping legislation before it lands.'},
+  {a:'assurance', b:'developers', title:'Provide tools & assurance',
+   text:'Assurance vendors audit, test and tool the systems developers build, filling the gaps between principle and proof.'},
+  {a:'services', b:'deployers', title:'Provide advice & services',
+   text:'Legal, compliance and advisory vendors help deployers meet obligations and orchestrate governance processes.'},
+  {a:'associations', b:'deployers', title:'Provide knowledge & community',
+   text:'Professional associations train, certify and connect the practitioners running AI governance inside deploying organizations.'},
+  {a:'investors', b:'developers', title:'Expect returns & risk mitigation',
+   text:'Shareholders and investors fund the build-out and press for efficiency and growth — while expecting the risks to be managed.'},
+  {a:'inputs', b:'developers', title:'Supply data, models & compute',
+   text:'Input suppliers make the essential factors of production — training data, foundation models and computing infrastructure — available to developers.'},
+  {a:'distributors', b:'endusers', title:'Create & distribute products',
+   text:'Distributors license, integrate and bring AI-enabled products to market, putting them in the hands of end users.'},
+  {a:'endusers', b:'deployers', title:'Provide consumer influence',
+   text:'End users push direct and indirect influence back up the chain — adopting, rejecting and shaping demand for AI products.'}
+];
+
+// ---- View registry: the mode switch flips between these two ----
+const VIEWS = {
+  board:{
+    key:'board', factions:FACTIONS, actors:ACTORS, relations:TENSIONS,
+    compact:false, directional:false, relVerb:'pulls against', relKind:'Tension',
+    railLabel:'The tensions — what pulls against what',
+    hint:'Tap an actor to open its card · tap a line to read the tension · flip the lens to surface constraints',
+    lede:'The race to build advanced AI isn\'t one story — it\'s <strong>four actors</strong> pulling against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.'
+  },
+  eco:{
+    key:'eco', factions:ECO_GROUPS, actors:ECO_ACTORS, relations:ECO_RELATIONS,
+    compact:true, directional:true, relVerb:'provides to', relKind:'Flow',
+    railLabel:'The flows — who provides what to whom',
+    hint:'Tap an actor to open its card · tap a line to trace the flow · flip the lens to surface constraints',
+    lede:'Zoom out from the four to the <strong>fifteen</strong>: the full AI-governance ecosystem — who builds AI, who makes the rules, who shapes the debate, and who lives with the results. Adapted from the IAPP map. Pick an actor, or trace a flow between two.'
+  }
+};
+
 const board=document.getElementById('board');
 const svg=document.getElementById('edges');
 const SVGNS='http://www.w3.org/2000/svg';
+const legend=document.getElementById('legend');
+const mob=document.getElementById('mobileActors');
+const chips=document.getElementById('chips');
+const ledeEl=document.getElementById('lede');
+const railLabel=document.getElementById('railLabel');
+const hintEl=document.getElementById('hint');
+
+let view=VIEWS.board;
 let selectedActor=null;
+let nodeEls={};
+const edgeEls=[];
+
+// active-view helpers
+function grp(key){return view.actors[key].group||key;}
+function colorOf(key){
+  const cssVar=view.factions[grp(key)].color;
+  return getComputedStyle(document.documentElement).getPropertyValue(cssVar.match(/--[\w-]+/)[0]).trim();
+}
 
 // legend
-const legend=document.getElementById('legend');
-Object.entries(FACTIONS).forEach(([k,f])=>{
-  const el=document.createElement('div');
-  el.className='legend-item';
-  el.innerHTML=`<span class="dot" style="background:${f.color}"></span>${f.name}`;
-  legend.appendChild(el);
-});
+function renderLegend(){
+  legend.innerHTML='';
+  Object.values(view.factions).forEach(f=>{
+    const el=document.createElement('div');
+    el.className='legend-item';
+    el.innerHTML=`<span class="dot" style="background:${f.color}"></span>${f.name}`;
+    legend.appendChild(el);
+  });
+}
 
 // nodes
-const nodeEls={};
-Object.entries(ACTORS).forEach(([key,a])=>{
-  const b=document.createElement('button');
-  b.className='node';b.style.left=a.x+'%';b.style.top=a.y+'%';
-  b.style.setProperty('--fc',FACTIONS[key].color);
-  b.setAttribute('aria-label',`${a.name} — open card`);
-  b.innerHTML=`<span class="n-tag">${a.tag}</span>
-    <span class="n-name">${a.name}</span>
-    <span class="n-essence">${a.essence}</span>
-    <span class="n-limit">${a.fields.find(f=>f[2])[1].replace(/<[^>]+>/g,'')}</span>`;
-  b.addEventListener('click',()=>openActor(key));
-  board.appendChild(b);nodeEls[key]=b;
-});
+function renderNodes(){
+  board.querySelectorAll('.node').forEach(n=>n.remove());
+  nodeEls={};
+  Object.entries(view.actors).forEach(([key,a])=>{
+    const b=document.createElement('button');
+    b.className='node'+(view.compact?' compact':'');
+    b.style.left=a.x+'%';b.style.top=a.y+'%';
+    b.style.setProperty('--fc',view.factions[grp(key)].color);
+    b.setAttribute('aria-label',`${a.name} — open card`);
+    const lim=a.fields.find(f=>f[2]);
+    b.innerHTML=`<span class="n-tag">${a.tag}</span>
+      <span class="n-name">${a.name}</span>
+      <span class="n-essence">${a.essence}</span>
+      <span class="n-limit">${lim?lim[1].replace(/<[^>]+>/g,''):''}</span>`;
+    b.addEventListener('click',()=>openActor(key));
+    board.appendChild(b);nodeEls[key]=b;
+  });
+}
 
 // mobile cards
-const mob=document.getElementById('mobileActors');
-Object.entries(ACTORS).forEach(([key,a])=>{
-  const b=document.createElement('button');
-  b.className='m-card';b.style.setProperty('--fc',FACTIONS[key].color);
-  b.innerHTML=`<div class="n-tag">${a.tag}</div><div class="n-name">${a.name}</div><div class="n-essence">${a.essence}</div>`;
-  b.addEventListener('click',()=>openActor(key));
-  mob.appendChild(b);
-});
+function renderMobile(){
+  mob.innerHTML='';
+  Object.entries(view.actors).forEach(([key,a])=>{
+    const b=document.createElement('button');
+    b.className='m-card';b.style.setProperty('--fc',view.factions[grp(key)].color);
+    b.innerHTML=`<div class="n-tag">${a.tag}</div><div class="n-name">${a.name}</div><div class="n-essence">${a.essence}</div>`;
+    b.addEventListener('click',()=>openActor(key));
+    mob.appendChild(b);
+  });
+}
+
+// chips
+function renderChips(){
+  chips.innerHTML='';
+  view.relations.forEach((t,i)=>{
+    const c=document.createElement('button');
+    c.className='chip';
+    c.innerHTML=view.directional
+      ? `<span class="g" style="background:${colorOf(t.a)}"></span><span class="arw">→</span><span class="g" style="background:${colorOf(t.b)}"></span>${t.title}`
+      : `<span class="g" style="background:${colorOf(t.a)}"></span><span class="g2" style="background:${colorOf(t.b)}"></span>${t.title}`;
+    c.addEventListener('click',()=>openRelation(i));
+    chips.appendChild(c);
+  });
+}
 
 // edges
-const edgeEls=[];
+function setLine(l,x1,y1,x2,y2){l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);}
 function buildEdges(){
   svg.innerHTML='';edgeEls.length=0;
   const W=board.clientWidth,H=board.clientHeight;
+  if(!W||!H)return;
   svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
-  TENSIONS.forEach((t,i)=>{
-    const A=ACTORS[t.a],B=ACTORS[t.b];
+  view.relations.forEach((t,i)=>{
+    const A=view.actors[t.a],B=view.actors[t.b];
     const x1=A.x/100*W,y1=A.y/100*H,x2=B.x/100*W,y2=B.y/100*H;
     const hit=document.createElementNS(SVGNS,'line');
-    hit.setAttribute('class','edge-hit');
-    setLine(hit,x1,y1,x2,y2);
+    hit.setAttribute('class','edge-hit');setLine(hit,x1,y1,x2,y2);
     const base=document.createElementNS(SVGNS,'line');
     base.setAttribute('class','edge');setLine(base,x1,y1,x2,y2);
     const flow=document.createElementNS(SVGNS,'line');
     flow.setAttribute('class','edge-flow');setLine(flow,x1,y1,x2,y2);
-    const grad=`url(#g${i})`;
-    flow.style.stroke=blend(FACTIONS[t.a].color,FACTIONS[t.b].color);
-    [hit,base].forEach(e=>{e.style.cursor='pointer';e.addEventListener('click',()=>openTension(i));});
+    flow.style.stroke=colorOf(t.a);
+    [hit,base].forEach(e=>{e.style.cursor='pointer';e.addEventListener('click',()=>openRelation(i));});
     svg.appendChild(base);svg.appendChild(flow);svg.appendChild(hit);
     edgeEls.push({base,flow,t});
   });
 }
-function setLine(l,x1,y1,x2,y2){l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);}
-function blend(a,b){return getComputedStyle(document.documentElement).getPropertyValue(a.match(/--[\w-]+/)[0]).trim();}
-
-// chips
-const chips=document.getElementById('chips');
-TENSIONS.forEach((t,i)=>{
-  const c=document.createElement('button');
-  c.className='chip';
-  c.innerHTML=`<span class="g" style="background:${FACTIONS[t.a].color}"></span><span class="g2" style="background:${FACTIONS[t.b].color}"></span>${t.title}`;
-  c.addEventListener('click',()=>openTension(i));
-  chips.appendChild(c);
-});
 
 // interactions
 function highlightActor(key){
@@ -472,9 +776,9 @@ const pBody=document.getElementById('panelBody');
 let lastFocus=null;
 
 function openActor(key){
-  const a=ACTORS[key],f=FACTIONS[key];
+  const a=view.actors[key];
   selectedActor=key;highlightActor(key);
-  panel.style.setProperty('--pc',f.color);
+  panel.style.setProperty('--pc',view.factions[grp(key)].color);
   pTag.textContent=a.tag+' · Actor';
   pTitle.textContent=a.name;
   pSub.textContent=a.essence;
@@ -483,31 +787,32 @@ function openActor(key){
   ).join('');
   showPanel();
 }
-function openTension(i){
-  const t=TENSIONS[i],fa=FACTIONS[t.a],fb=FACTIONS[t.b];
+function openRelation(i){
+  const t=view.relations[i];
+  const A=view.actors[t.a],B=view.actors[t.b];
+  const ca=colorOf(t.a),cb=colorOf(t.b);
   selectedActor=null;
-  // light both endpoints
   Object.entries(nodeEls).forEach(([k,el])=>{
     el.classList.toggle('selected',k===t.a||k===t.b);
     el.classList.toggle('dim',!(k===t.a||k===t.b));
   });
-  edgeEls.forEach(({base,flow,t:tt},idx)=>{
+  edgeEls.forEach(({base,flow},idx)=>{
     base.classList.toggle('active',idx===i);
     base.classList.toggle('dim',idx!==i);
     flow.classList.toggle('dim',idx!==i);
   });
   panel.style.setProperty('--pc','var(--text-mid)');
-  pTag.textContent='Tension';
+  pTag.textContent=view.relKind;
   pTitle.textContent=t.title;
   pSub.innerHTML='';
   pBody.innerHTML=
     `<div class="field"><h4>Between</h4>
       <div class="endpoints">
-        <span class="ep"><i style="background:${fa.color}"></i>${fa.name}</span>
-        <span class="vs">pulls against</span>
-        <span class="ep"><i style="background:${fb.color}"></i>${fb.name}</span>
+        <span class="ep"><i style="background:${ca}"></i>${A.name}</span>
+        <span class="vs">${view.relVerb}</span>
+        <span class="ep"><i style="background:${cb}"></i>${B.name}</span>
       </div></div>
-     <div class="field"><h4>What's in tension</h4><p>${t.text}</p></div>`;
+     <div class="field"><h4>${view.directional?'The flow':'What\'s in tension'}</h4><p>${t.text}</p></div>`;
   showPanel();
 }
 function showPanel(){
@@ -518,7 +823,7 @@ function showPanel(){
 function closePanel(){
   panel.classList.remove('open');scrim.classList.remove('open');
   selectedActor=null;highlightActor(null);
-  if(lastFocus)lastFocus.focus();
+  if(lastFocus&&document.contains(lastFocus))lastFocus.focus();
 }
 document.getElementById('close').addEventListener('click',closePanel);
 scrim.addEventListener('click',closePanel);
@@ -532,11 +837,30 @@ lens.addEventListener('click',()=>{
   document.body.classList.toggle('lens',!on);
 });
 
+// view (mode) switching
+const modeBoard=document.getElementById('modeBoard');
+const modeEco=document.getElementById('modeEco');
+function setView(v){
+  view=v;selectedActor=null;
+  panel.classList.remove('open');scrim.classList.remove('open');
+  modeBoard.setAttribute('aria-selected',String(v.key==='board'));
+  modeEco.setAttribute('aria-selected',String(v.key==='eco'));
+  board.classList.toggle('eco',v.key==='eco');
+  ledeEl.innerHTML=v.lede;
+  railLabel.textContent=v.railLabel;
+  hintEl.textContent=v.hint;
+  renderLegend();renderNodes();renderMobile();renderChips();
+  requestAnimationFrame(buildEdges);
+}
+modeBoard.addEventListener('click',()=>setView(VIEWS.board));
+modeEco.addEventListener('click',()=>setView(VIEWS.eco));
+
 // resize
 let raf;
 function onResize(){cancelAnimationFrame(raf);raf=requestAnimationFrame(buildEdges);}
 window.addEventListener('resize',onResize);
-buildEdges();
+
+setView(VIEWS.board);
 </script>
 </body>
 </html>
