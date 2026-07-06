@@ -298,14 +298,14 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="kicker"><span class="bar"></span>AI Governance · Unit 01 · The Board</div>
+      <div class="kicker"><span class="bar"></span>AI Governance Ecosystem (working prototype)</div>
       <h1>Everyone here has more power than you'd think — and is more <em>boxed in</em> than they'd admit.</h1>
-      <p class="lede" id="lede">The race to build advanced AI isn't one story — it's <strong>four actors</strong> pulling against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.</p>
+      <p class="lede" id="lede">The race to build advanced AI isn't one story — it's <strong>many actors</strong> pulling with and against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.</p>
     </header>
 
     <div class="modebar">
       <div class="modeswitch" role="tablist" aria-label="Choose a view">
-        <button class="mode-btn" id="modeBoard" role="tab" aria-selected="true">The Board<span class="cnt">4</span></button>
+        <button class="mode-btn" id="modeBoard" role="tab" aria-selected="true">Simplified view<span class="cnt">4</span></button>
         <button class="mode-btn" id="modeEco" role="tab" aria-selected="false">The Ecosystem<span class="cnt">15</span></button>
       </div>
     </div>
@@ -335,11 +335,9 @@
     <footer>
       <div class="foot-grid">
         <p class="foot-note">
-          A working prototype — the first unit in a growing set of visual explainers for AI governance.
-          The structure here (who each actor is, wants, fears, and what limits them) is durable; anything time-sensitive lives in a dated margin, never the core.
-          Board actors adapted from the <code>AGI Strategy: Character Cards</code>; the ecosystem view is adapted from the IAPP report <code>Mapping and understanding the AI governance ecosystem</code>.
+          This is a working prototype, one of my explorations on visual explainers for AI governance.
+          The ecosystem map here (who each actor is, wants, fears, and what limits them) took reference from (1) bluedot's <code>AGI Strategy: Character Cards</code> and (2) the IAPP report on <code>Mapping and understanding the AI governance ecosystem</code>.
         </p>
-        <span class="stamp">STRUCTURE · NOT NEWS</span>
       </div>
     </footer>
   </div>
@@ -633,6 +631,303 @@ const ECO_RELATIONS = [
    text:'End users push direct and indirect influence back up the chain — adopting, rejecting and shaping demand for AI products.'}
 ];
 
+// ============================================================
+//  RULES LAYER — regulations dataset + actor mapping
+//  (Ecosystem view only). Dataset transcribed verbatim from the
+//  regulations brief; `constrains`/`tension` are rendered as-is.
+// ============================================================
+const REG_META = {
+  "lastUpdated": "2026-07-06",
+  "disclaimer": "Statuses current as of July 2026. Several items are contested or provisional (EU high-risk delay, US federal preemption litigation). Verify before relying.",
+  "statusValues": ["in-force", "phased", "enacted-pending", "provisional", "non-statutory", "voluntary"]
+};
+
+const REGULATIONS = [
+  {
+    "id": "eu-ai-act",
+    "name": "EU AI Act",
+    "jurisdiction": "European Union",
+    "type": "binding-law",
+    "status": "phased",
+    "madeBy": ["eu"],
+    "binds": ["frontier-labs", "big-tech", "startups", "enterprises-deploying-ai"],
+    "constrains": "The world's only comprehensive risk-tiered AI law. Bans 'unacceptable risk' uses, regulates GPAI models, and buries high-risk systems in conformity assessments. Applies extraterritorially — touch the EU market, you're in.",
+    "tension": "Brussels effect vs. innovation flight. Even the EU blinked: high-risk obligations provisionally delayed to 2027.",
+    "keyDates": {
+      "inForce": "2024-08-01",
+      "prohibitedPractices": "2025-02-02",
+      "gpaiObligations": "2025-08-02",
+      "highRiskObligations": "2027 (provisionally delayed from Aug 2026; delay not yet formally adopted)"
+    },
+    "penalties": "Up to 7% of global turnover for prohibited practices",
+    "sourceUrl": "https://artificialintelligenceact.eu/"
+  },
+  {
+    "id": "us-eo-national-framework",
+    "name": "US Executive Order: Ensuring a National Policy Framework for AI",
+    "jurisdiction": "United States (federal)",
+    "type": "executive-order",
+    "status": "in-force",
+    "madeBy": ["us-federal"],
+    "binds": ["federal-agencies", "us-states"],
+    "constrains": "Directs federal agencies to challenge state AI laws via litigation and funding levers, created an AI Litigation Task Force, and pushes a light-touch national standard. Doesn't itself preempt state law — that fight is in the courts.",
+    "tension": "Federal deregulation vs. state legislating. Named Colorado's law explicitly; DOJ intervened in xAI's suit against it.",
+    "keyDates": {
+      "signed": "2025-12-11",
+      "litigationTaskForce": "2026-01-09"
+    },
+    "penalties": null,
+    "sourceUrl": "https://www.whitehouse.gov/presidential-actions/"
+  },
+  {
+    "id": "ca-sb53",
+    "name": "California SB 53 — Transparency in Frontier AI Act (TFAIA)",
+    "jurisdiction": "California, US",
+    "type": "binding-law",
+    "status": "in-force",
+    "madeBy": ["us-states"],
+    "binds": ["frontier-labs"],
+    "constrains": "First US law aimed squarely at frontier models (>10^26 FLOPs, $500M+ revenue developers). Mandates published safety frameworks, pre-deployment transparency reports, 15-day incident reporting to state authorities, and whistleblower protections.",
+    "tension": "Converts voluntary lab commitments into enforceable duties — disclosure as regulation. Applies to maybe five companies; shapes the whole industry.",
+    "keyDates": {
+      "signed": "2025-09-29",
+      "effective": "2026-01-01"
+    },
+    "penalties": "Up to $1M per violation, enforced by the Attorney General",
+    "sourceUrl": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB53"
+  },
+  {
+    "id": "ca-transparency-stack",
+    "name": "California AI transparency stack (AB 2013, SB 942/AB 853)",
+    "jurisdiction": "California, US",
+    "type": "binding-law",
+    "status": "phased",
+    "madeBy": ["us-states"],
+    "binds": ["frontier-labs", "big-tech", "platforms"],
+    "constrains": "AB 2013 forces generative AI developers to publish training-data documentation. SB 942 (amended by AB 853) requires AI content labeling and provenance detection, phasing in platform, hosting, and capture-device obligations through 2028.",
+    "tension": "Transparency about training data collides with trade secrets and copyright litigation exposure.",
+    "keyDates": {
+      "ab2013Effective": "2026-01-01",
+      "sb942Effective": "2026-08-02",
+      "hostingPlatforms": "2027-01-01",
+      "captureDevices": "2028-01-01"
+    },
+    "penalties": "$5,000 per violation per day (SB 942)",
+    "sourceUrl": "https://leginfo.legislature.ca.gov/"
+  },
+  {
+    "id": "co-ai-act",
+    "name": "Colorado AI Act (revised, SB 26-189)",
+    "jurisdiction": "Colorado, US",
+    "type": "binding-law",
+    "status": "enacted-pending",
+    "madeBy": ["us-states"],
+    "binds": ["enterprises-deploying-ai", "developers"],
+    "constrains": "The great retreat. The original 2024 law imported the EU's risk-management model; under federal pressure and an xAI lawsuit it was repealed and replaced in a two-week sprint. The rewrite keeps notice, human-review rights, and record-keeping for automated decisions in consequential domains — and strips out impact assessments and duty-of-care.",
+    "tension": "Case study in how federal headwinds reshape state law. From 'high-risk AI systems' to 'automated decision-making technology' — the phrase 'artificial intelligence' no longer appears.",
+    "keyDates": {
+      "originalSigned": "2024-05-17",
+      "replacementSigned": "2026-05-14",
+      "effective": "2027-01-01"
+    },
+    "penalties": "Enforced via consumer protection / deceptive trade practices",
+    "sourceUrl": "https://leg.colorado.gov/"
+  },
+  {
+    "id": "tx-traiga",
+    "name": "Texas Responsible AI Governance Act (TRAIGA)",
+    "jurisdiction": "Texas, US",
+    "type": "binding-law",
+    "status": "in-force",
+    "madeBy": ["us-states"],
+    "binds": ["enterprises-deploying-ai", "government-agencies"],
+    "constrains": "Intent-based prohibitions (behavioral manipulation, unlawful discrimination, certain biometric uses) rather than EU-style risk tiers. Heavier on government use of AI than private sector. Includes a regulatory sandbox.",
+    "tension": "The 'red state model': anti-woke and anti-Big-Tech at once — bans intentional discrimination but rejects disparate-impact liability.",
+    "keyDates": {
+      "effective": "2025-09-01"
+    },
+    "penalties": "Civil penalties enforced by the Texas AG",
+    "sourceUrl": "https://capitol.texas.gov/"
+  },
+  {
+    "id": "ny-raise",
+    "name": "New York RAISE Act",
+    "jurisdiction": "New York, US",
+    "type": "binding-law",
+    "status": "enacted-pending",
+    "madeBy": ["us-states"],
+    "binds": ["frontier-labs"],
+    "constrains": "New York's answer to SB 53: large frontier developers must maintain safety plans, report incidents within 72 hours, and publish disclosures. Signed December 2025, softened by a March 2026 chapter amendment.",
+    "tension": "Two states now regulate frontier labs headquartered in neither's borders comfortably — compute thresholds as jurisdiction.",
+    "keyDates": {
+      "signed": "2025-12",
+      "amended": "2026-03-27",
+      "effective": "2027-01-01"
+    },
+    "penalties": "Civil penalties, AG-enforced",
+    "sourceUrl": "https://www.nysenate.gov/"
+  },
+  {
+    "id": "kr-ai-framework-act",
+    "name": "South Korea AI Framework Act (AI Basic Act)",
+    "jurisdiction": "South Korea",
+    "type": "binding-law",
+    "status": "in-force",
+    "madeBy": ["korea"],
+    "binds": ["frontier-labs", "big-tech", "domestic-industry"],
+    "constrains": "Second comprehensive national AI law after the EU's. Obligations for 'high-impact' AI in sensitive sectors, AI content labeling, and safety duties for large-scale models — paired with explicit industrial promotion measures.",
+    "tension": "Regulation as industrial policy: constrain just enough to be trusted, promote enough to compete.",
+    "keyDates": {
+      "enacted": "2025-01",
+      "effective": "2026-01-22"
+    },
+    "penalties": "Administrative fines (modest by EU standards)",
+    "sourceUrl": "https://www.msit.go.kr/"
+  },
+  {
+    "id": "jp-ai-promotion-act",
+    "name": "Japan AI Promotion Act",
+    "jurisdiction": "Japan",
+    "type": "binding-law",
+    "status": "in-force",
+    "madeBy": ["japan"],
+    "binds": ["domestic-industry"],
+    "constrains": "Barely. A deliberately soft-law framework: promotes AI development, establishes a strategy headquarters, relies on cooperation duties rather than penalties. The anti-EU-AI-Act.",
+    "tension": "Bet that light-touch wins the innovation race; critics call it regulation theater.",
+    "keyDates": {
+      "enacted": "2025-05"
+    },
+    "penalties": "None (no direct sanctions)",
+    "sourceUrl": "https://www.cao.go.jp/"
+  },
+  {
+    "id": "cn-genai-rules",
+    "name": "China's generative AI rule stack",
+    "jurisdiction": "China",
+    "type": "binding-law",
+    "status": "in-force",
+    "madeBy": ["china"],
+    "binds": ["domestic-industry", "platforms"],
+    "constrains": "Iterative, sector-specific rules rather than one omnibus law: algorithm recommendation rules (2022), deep synthesis rules (2023), Interim Measures for Generative AI (2023) requiring security assessments and alignment with 'core socialist values', and mandatory AI-content labeling measures (Sept 2025).",
+    "tension": "Content control and party alignment first, safety-washing second — yet China moves faster on binding rules than almost anyone.",
+    "keyDates": {
+      "algorithmRules": "2022-03-01",
+      "deepSynthesis": "2023-01-10",
+      "genAiInterimMeasures": "2023-08-15",
+      "contentLabeling": "2025-09-01"
+    },
+    "penalties": "License revocation, service suspension, fines under Cybersecurity Law",
+    "sourceUrl": "https://www.cac.gov.cn/"
+  },
+  {
+    "id": "uk-sectoral",
+    "name": "UK pro-innovation (sectoral) approach",
+    "jurisdiction": "United Kingdom",
+    "type": "policy-framework",
+    "status": "non-statutory",
+    "madeBy": ["uk"],
+    "binds": [],
+    "constrains": "No AI-specific statute. Existing regulators (ICO, FCA, CMA, Ofcom) apply five cross-cutting principles within their remits. Indirect coverage via the Online Safety Act and Data (Use and Access) Act 2025. A private member's AI Regulation Bill is inching through the Lords.",
+    "tension": "Home of the AI Security Institute but declined to sign the 2025 summit declaration — safety research without safety law.",
+    "keyDates": {
+      "whitePaper": "2023-03",
+      "dataUseAccessAct": "2025"
+    },
+    "penalties": "Only via existing sectoral regulators",
+    "sourceUrl": "https://www.gov.uk/government/publications/ai-regulation-a-pro-innovation-approach"
+  },
+  {
+    "id": "coe-framework-convention",
+    "name": "Council of Europe Framework Convention on AI",
+    "jurisdiction": "International (treaty)",
+    "type": "treaty",
+    "status": "phased",
+    "madeBy": ["council-of-europe"],
+    "binds": ["signatory-states"],
+    "constrains": "First binding international AI treaty, covering human rights, democracy, and rule of law. Signed by the EU, UK, US and others in Sept 2024 — but obligations run to states, not companies, and enforcement is soft.",
+    "tension": "Binding in name, aspirational in practice. The US signed under one administration; follow-through under the next is an open question.",
+    "keyDates": {
+      "openedForSignature": "2024-09-05"
+    },
+    "penalties": "None (state reporting mechanisms)",
+    "sourceUrl": "https://www.coe.int/en/web/artificial-intelligence"
+  },
+  {
+    "id": "nist-ai-rmf",
+    "name": "NIST AI Risk Management Framework",
+    "jurisdiction": "United States (voluntary, global uptake)",
+    "type": "voluntary-standard",
+    "status": "voluntary",
+    "madeBy": ["us-federal", "standards-bodies"],
+    "binds": [],
+    "constrains": "Voluntary, but the de facto operating system of AI governance programs: govern, map, measure, manage. Referenced by state laws, procurement rules, and insurers — soft law that hardens through contracts.",
+    "tension": "A voluntary framework doing the work a federal statute won't.",
+    "keyDates": {
+      "v1Released": "2023-01-26",
+      "genAiProfile": "2024-07"
+    },
+    "penalties": "None",
+    "sourceUrl": "https://www.nist.gov/itl/ai-risk-management-framework"
+  }
+];
+
+const REG_SOURCES = [
+  {"name": "IAPP AI Governance Center", "url": "https://iapp.org/resources/topics/ai-governance/", "why": "Best practitioner-oriented tracking of laws, enforcement, and the governance profession"},
+  {"name": "OECD.AI Policy Observatory", "url": "https://oecd.ai/", "why": "Canonical database of national AI policies across 70+ countries"},
+  {"name": "EU AI Act Explorer (FLI)", "url": "https://artificialintelligenceact.eu/", "why": "Full text, implementation timeline, and compliance checker for the AI Act"},
+  {"name": "Stanford HAI AI Index", "url": "https://aiindex.stanford.edu/", "why": "Annual data on AI progress, investment, and policy activity"},
+  {"name": "NCSL AI Legislation Tracker", "url": "https://www.ncsl.org/technology-and-communication/artificial-intelligence", "why": "Tracks the US state-law patchwork session by session"},
+  {"name": "Carnegie Endowment — Technology and International Affairs", "url": "https://carnegieendowment.org/programs/technology", "why": "Deep analysis on frontier AI governance and geopolitics"},
+  {"name": "AI Standards Hub", "url": "https://aistandardshub.org/", "why": "Tracks the standards layer (ISO/IEC 42001, CEN-CENELEC) beneath the laws"},
+  {"name": "GovAI (Centre for the Governance of AI)", "url": "https://www.governance.ai/", "why": "Research on frontier model governance, compute governance, and institutional design"}
+];
+
+// status badge styling (see brief §"Status badge colors")
+const REG_STATUS = {
+  'in-force':        {label:'In force',          color:'var(--teal)',     fill:'solid'},
+  'phased':          {label:'Phasing in',        color:'var(--gold)',     fill:'striped'},
+  'enacted-pending': {label:'Enacted · pending', color:'var(--indigo)',   fill:'outline'},
+  'provisional':     {label:'Provisional',       color:'var(--text-dim)', fill:'dashed'},
+  'non-statutory':   {label:'Non-statutory',     color:'var(--text-dim)', fill:'dashed'},
+  'voluntary':       {label:'Voluntary',         color:'var(--text-dim)', fill:'dashed'}
+};
+
+// human labels for every slug used in madeBy/binds (card + index display)
+const SLUG_LABEL = {
+  'eu':'European Union', 'us-federal':'US federal government', 'us-states':'US states',
+  'korea':'South Korea', 'japan':'Japan', 'china':'China', 'uk':'United Kingdom',
+  'council-of-europe':'Council of Europe', 'standards-bodies':'Standards bodies',
+  'frontier-labs':'Frontier labs', 'big-tech':'Big Tech', 'startups':'Startups',
+  'developers':'Developers', 'domestic-industry':'Domestic industry', 'platforms':'Platforms',
+  'enterprises-deploying-ai':'Enterprises deploying AI', 'government-agencies':'Government agencies',
+  'federal-agencies':'Federal agencies', 'signatory-states':'Signatory states'
+};
+
+// Confirmed mapping → Ecosystem actor IDs (null = no map chip; index-only).
+// Two maps because 'us-states' = state legislators when it MAKES a rule,
+// but state governments (no actor) when a rule BINDS it.
+const MAKER_TO_ACTOR = {
+  'eu':'legislators', 'us-states':'legislators', 'korea':'legislators', 'japan':'legislators',
+  'us-federal':'regulators', 'china':'regulators', 'uk':'regulators',
+  'standards-bodies':'standards', 'council-of-europe':null
+};
+const BINDS_TO_ACTOR = {
+  'frontier-labs':'developers', 'big-tech':'developers', 'startups':'developers',
+  'developers':'developers', 'domestic-industry':'developers',
+  'platforms':'distributors',
+  'enterprises-deploying-ai':'deployers', 'government-agencies':'deployers', 'federal-agencies':'deployers',
+  'us-states':null, 'signatory-states':null
+};
+
+// helpers
+function getRegulationsMadeBy(actorId){
+  return REGULATIONS.filter(r=>(r.madeBy||[]).some(s=>MAKER_TO_ACTOR[s]===actorId));
+}
+function getRegulationsBinding(actorId){
+  return REGULATIONS.filter(r=>(r.binds||[]).some(s=>BINDS_TO_ACTOR[s]===actorId));
+}
+function regById(id){return REGULATIONS.find(r=>r.id===id);}
+
 // ---- View registry: the mode switch flips between these two ----
 const VIEWS = {
   board:{
@@ -640,7 +935,7 @@ const VIEWS = {
     compact:false, directional:false, relVerb:'pulls against', relKind:'Tension',
     railLabel:'The tensions — what pulls against what',
     hint:'Tap an actor to open its card · tap a line to read the tension · flip the lens to surface constraints',
-    lede:'The race to build advanced AI isn\'t one story — it\'s <strong>four actors</strong> pulling against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.'
+    lede:'The race to build advanced AI isn\'t one story — it\'s <strong>many actors</strong> pulling with and against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.'
   },
   eco:{
     key:'eco', factions:ECO_GROUPS, actors:ECO_ACTORS, relations:ECO_RELATIONS,
