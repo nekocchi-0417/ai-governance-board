@@ -99,11 +99,19 @@
   .lens-toggle[aria-pressed="true"] .pip::after{transform:translateX(14px);background:var(--coral)}
 
   /* ---------- mode switch ---------- */
-  .modebar{padding-top:30px}
+  .modebar{padding-top:30px;display:flex;flex-wrap:wrap;gap:14px;align-items:center;justify-content:space-between}
   .modeswitch{
     display:inline-flex;background:var(--card);border:1px solid var(--line);
     border-radius:999px;padding:4px;gap:3px;
   }
+  .langswitch{display:inline-flex;background:var(--card);border:1px solid var(--line);border-radius:999px;padding:4px;gap:3px}
+  .lang-btn{
+    font-family:var(--mono);font-size:12px;letter-spacing:.03em;
+    color:var(--text-mid);background:none;border:none;border-radius:999px;
+    padding:8px 15px;cursor:pointer;transition:background .2s,color .2s;
+  }
+  .lang-btn:hover{color:var(--text-hi)}
+  .lang-btn[aria-selected="true"]{background:var(--card-hi);color:var(--text-hi);box-shadow:0 1px 3px rgba(0,0,0,.3)}
   .mode-btn{
     font-family:var(--mono);font-size:12px;letter-spacing:.03em;
     color:var(--text-mid);background:none;border:none;border-radius:999px;
@@ -401,8 +409,8 @@
 <body>
   <div class="wrap">
     <header>
-      <div class="kicker"><span class="bar"></span>AI Governance Ecosystem (working prototype)</div>
-      <h1>Everyone here has more power than you'd think — and is more <em>boxed in</em> than they'd admit.</h1>
+      <div class="kicker"><span class="bar"></span><span id="kickerText">AI Governance Ecosystem (working prototype)</span></div>
+      <h1 id="h1">Everyone here has more power than you'd think — and is more <em>boxed in</em> than they'd admit.</h1>
       <p class="lede" id="lede">The race to build advanced AI isn't one story — it's <strong>many actors</strong> pulling with and against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.</p>
     </header>
 
@@ -410,6 +418,10 @@
       <div class="modeswitch" role="tablist" aria-label="Choose a view">
         <button class="mode-btn" id="modeBoard" role="tab" aria-selected="true">Simplified view<span class="cnt">4</span></button>
         <button class="mode-btn" id="modeEco" role="tab" aria-selected="false">The Ecosystem<span class="cnt">15</span></button>
+      </div>
+      <div class="langswitch" id="langSwitch" aria-label="Language">
+        <button class="lang-btn" data-lang="en" aria-selected="true">EN</button>
+        <button class="lang-btn" data-lang="zh" aria-selected="false">中文</button>
       </div>
     </div>
 
@@ -440,13 +452,13 @@
   <div class="wrap">
     <section class="regindex" id="regIndex" aria-label="All regulations">
       <div class="ri-head">
-        <div class="rail-label" style="margin-bottom:0">The rules — every regulation on the board</div>
+        <div class="rail-label" id="riHeading" style="margin-bottom:0">The rules — every regulation on the board</div>
         <div class="ri-count" id="riCount"></div>
       </div>
       <div class="ri-filters">
-        <label class="ri-field"><span>Jurisdiction</span><select id="riJur"></select></label>
-        <label class="ri-field"><span>Status</span><select id="riStatus"></select></label>
-        <label class="ri-field"><span>Binds</span><select id="riBinds"></select></label>
+        <label class="ri-field"><span id="riJurLabel">Jurisdiction</span><select id="riJur"></select></label>
+        <label class="ri-field"><span id="riStatusLabel">Status</span><select id="riStatus"></select></label>
+        <label class="ri-field"><span id="riBindsLabel">Binds</span><select id="riBinds"></select></label>
         <button class="ri-sort" id="riSort">Earliest first ↑</button>
       </div>
       <div class="ri-list" id="riList"></div>
@@ -457,13 +469,13 @@
   <div class="wrap">
     <footer>
       <div class="foot-grid">
-        <p class="foot-note">
+        <p class="foot-note" id="footNote">
           This is a working prototype, one of my explorations on visual explainers for AI governance.
           The ecosystem map here (who each actor is, wants, fears, and what limits them) took reference from (1) bluedot's <code>AGI Strategy</code> course and (2) the IAPP report on <code>Mapping and understanding the AI governance ecosystem</code>.
         </p>
       </div>
       <div class="foot-sources">
-        <div class="rail-label">Sources &amp; further reading</div>
+        <div class="rail-label" id="sourcesLabel">Sources &amp; further reading</div>
         <div class="src-grid" id="footSources"></div>
       </div>
     </footer>
@@ -1046,32 +1058,283 @@ const BINDS_TO_ACTOR = {
   'us-states':null, 'signatory-states':null
 };
 
-// helpers
+// helpers (REGS = active-language regulations, swapped by setLang)
 function getRegulationsMadeBy(actorId){
-  return REGULATIONS.filter(r=>(r.madeBy||[]).some(s=>MAKER_TO_ACTOR[s]===actorId));
+  return REGS.filter(r=>(r.madeBy||[]).some(s=>MAKER_TO_ACTOR[s]===actorId));
 }
 function getRegulationsBinding(actorId){
-  return REGULATIONS.filter(r=>(r.binds||[]).some(s=>BINDS_TO_ACTOR[s]===actorId));
+  return REGS.filter(r=>(r.binds||[]).some(s=>BINDS_TO_ACTOR[s]===actorId));
 }
-function regById(id){return REGULATIONS.find(r=>r.id===id);}
+function regById(id){return REGS.find(r=>r.id===id);}
 
-// ---- View registry: the mode switch flips between these two ----
-const VIEWS = {
-  board:{
-    key:'board', factions:FACTIONS, actors:ACTORS, relations:TENSIONS,
-    compact:false, directional:false, relVerb:'pulls against', relKind:'Tension',
-    railLabel:'The tensions — what pulls against what',
-    hint:'Tap an actor to open its card · tap a line to read the tension · flip the lens to surface constraints',
-    lede:'The race to build advanced AI isn\'t one story — it\'s <strong>many actors</strong> pulling with and against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.'
+// ============================================================
+//  i18n — Simplified Chinese translations (English is canonical)
+// ============================================================
+const FACTIONS_ZH = { power:"大国", labs:"AI 公司", talent:"顶尖 AI 人才", public:"公众" };
+const ECO_GROUPS_ZH = { valuechain:"价值链", rulemakers:"规则制定者", shapers:"塑造者", enablers:"市场推动者", recipients:"承受者" };
+
+const ACTORS_ZH = {
+  power:{ tag:"政府", name:"大国", essence:"美国与中国 —— 全球尺度的博弈筹码", fields:[
+    ["他们是谁","地球上最强大的国家 —— <strong>美国和中国</strong> —— 通过军事、经济、外交和文化力量投射影响力。"],
+    ["他们想要什么","<strong>美国：</strong>保持技术霸权，遏制中国的 AI，在不扼杀创新的前提下守护安全。<strong>中国：</strong>实现自给自足，打破美国的芯片卡脖子，通过国家主导在 AI 上领跑世界。"],
+    ["他们害怕什么","对方取得<strong>决定性的 AI 优势</strong> —— 以及一场拖沓的技术冷战拖垮自己的增长。"],
+    ["他们能做什么","出口管制、庞大的国家投资（CHIPS Act、Made in China 2025）、人才与移民政策、标准制定，以及军事 AI。"],
+    ["什么制约着他们","<strong>美国：</strong>制衡机制、行业游说、本土芯片制造薄弱、电力供应受限。<strong>中国：</strong>国家深度捆绑削弱竞争力、人才外流、芯片制造仍在成熟中。"]
+  ] },
+  labs:{ tag:"执行者", name:"AI 公司", essence:"前沿实验室 —— 速度", fields:[
+    ["他们是谁","这些<strong>前沿实验室</strong> —— OpenAI、Google DeepMind、Anthropic —— 训练着最强大的系统。总部在美国，估值数十亿美元，每家各有几千名员工。"],
+    ["他们想要什么","率先抵达 AGI 并攫取其价值；在维系公众信任的同时限制拖慢自己的规则；锁定人才、算力和数据，以持续扩张。"],
+    ["他们害怕什么","一场<strong>大规模事故</strong>烧毁信任、招来严厉监管；造出一个滑出人类控制的<strong>失准</strong>系统；在竞赛中输给对手 —— 更糟的是，输给一个中国对手。"],
+    ["他们能做什么","通过模型发布确立事实标准、游说政府、塑造公共舆论，并资助安全研究。"],
+    ["什么制约着他们","惊人的算力成本、惨烈的人才争夺（Meta 抛出 $100M 的待遇包）、内部安全与速度的裂痕、无休止的竞争压力，以及日益收紧的监管。"]
+  ] },
+  talent:{ tag:"研究者", name:"顶尖 AI 人才", essence:"真正造出它的那一小撮人", fields:[
+    ["他们是谁","一小群<strong>高薪的研究员和工程师</strong>，真正搭建这些系统 —— 大多出自大厂，深耕机器学习与软件。"],
+    ["他们想要什么","技术上的荣耀、对走向的影响力、自主权、一份长久的传承 —— 以及足以改变人生的<strong>财富</strong>。"],
+    ["他们害怕什么","自己造出的东西<strong>伤害到所爱之人</strong>；自家实验室落败、心血与股权化为乌有；自己这一方在内部速度与安全之争中败下阵来。"],
+    ["他们能做什么","做出让安全压过能力的技术与架构选择；就风险和时间表公开发声；辞职或吹哨。"],
+    ["什么制约着他们","系统一旦造出，他们对部署几乎说不上话 —— 还有合同、保密协议、竞争压力，以及公众对他们一言一行的审视。"]
+  ] },
+  public:{ tag:"公民社会", name:"公众", essence:"人数众多 —— 却难以协调", fields:[
+    ["他们是谁","民主国家里的选民和公民社会团体 —— 尤其是<strong>美国和英国</strong> —— 他们能撬动政府。"],
+    ["他们想要什么","工作保障、透明度和退出的权利，以及<strong>公平分享收益</strong>，而不是让权力聚集到少数人手中。"],
+    ["他们害怕什么","AI 驱动的<strong>快速失业却毫无安全网</strong>、一个无所不见的监控国家，以及社区与人际关系的瓦解。"],
+    ["他们能做什么","投票并施加政治压力、做出市场选择、通过倡导组织起来，并在还能退出的地方退出。"],
+    ["什么制约着他们","技术上的不透明和巨大的<strong>信息不对称</strong>、对 AI 的复杂心态、社会撕裂、职场中被迫使用 AI 的压力，以及薄弱的集体协调。"]
+  ] }
+};
+
+const TENSIONS_ZH = [
+  {title:"束缚 vs. 自主", text:"国家想为了国家安全而<strong>驾驭并遏制</strong> AI；实验室想要腾挪的空间。这一切在出口管制、军事合同和游说中上演 —— 双方彼此需要，却谁也不完全信任对方。"},
+  {title:"快 vs. 稳", text:"这是<strong>核心的内部裂痕</strong>。研究员握有实实在在的筹码 —— 薪酬战、辞职、吹哨 —— 但系统一旦发布便几乎失去控制权。每家实验室内部的速度与安全之争，主要由这群人来打。"},
+  {title:"不透明 vs. 问责", text:"公众<strong>承受着冲击</strong> —— 就业、偏见、监控 —— 却看不进系统内部。信任是货币，信息不对称是难题。一旦失去信任，实验室所惧怕的监管就会到来。"},
+  {title:"民意 vs. 掌控", text:"民主国家的公众推动<strong>监管和安全网</strong>；政府则要权衡，以免扼杀一个战略产业。三分之二的美国人想要 AI 规则 —— 但这股压力分散，易于被拖延搁置。"},
+  {title:"国家资产 vs. 自由人", text:"精英人才是一种<strong>战略资源</strong> —— 于是有了移民、留人和教育政策 —— 但个体会按自己的意愿流动、发声、离开。人才外流和跳槽，是没有哪个国家能完全掌控的杠杆。"},
+  {title:"谁在建造，谁在承受", text:"<strong>造它的那少数人</strong>，带来的后果要由<strong>承受它的多数人</strong>来共同面对。这是一处不动声色的锋刃，但整盘棋的正当性之问都压在上面：该让如此之多，系于如此之少的人手吗？"}
+];
+
+const ECO_ACTORS_ZH_A = {
+  developers:{ tag:"价值链", name:"开发者", essence:"构建模型与系统", fields:[
+    ["他们是谁","<strong>打造 AI 系统与通用大模型</strong>的组织——从大型科技公司到专注 AI 的小型初创企业。在欧盟《人工智能法案》里，他们对应于\"提供者\"（providers），承担价值链上最重的义务。"],
+    ["他们想要什么","快速推出能力强的模型，抢占市场份额和平台锁定，并保住自由迭代、不被拖慢发布节奏的空间。"],
+    ["他们害怕什么","代价高昂的合规体系、为下游危害承担责任，以及在前沿被资金更雄厚的对手甩在身后。"],
+    ["他们能做什么","靠自己发布和记录的东西定下事实标准，选择训练数据和护栏，并通过游说影响标准与政策。"],
+    ["什么在约束他们","提供者层面的法律义务（欧盟《人工智能法案》下的文档、合规评定、CE 标识）、沉重的算力与人才成本，以及对上游供应方的依赖。"]
+  ] },
+  deployers:{ tag:"价值链", name:"部署者", essence:"让 AI 在组织中落地干活", fields:[
+    ["他们是谁","各种规模的组织——大、中、小——凭自己的权限<strong>在自身运营中部署 AI 系统</strong>。欧盟《人工智能法案》称他们为\"部署者\"（deployers）。"],
+    ["他们想要什么","从 AI 中获得效率、成本节约和竞争优势，同时把集成摩擦降到最低、使用规则清晰明了。"],
+    ["他们害怕什么","部署了一套产出带偏见、不安全或不合规结果的系统——然后自己被追责。"],
+    ["他们能做什么","选择采用哪些系统、制定使用政策、让人类留在决策回路中，并将严重事件层层上报。"],
+    ["什么在约束他们","必须遵循提供者的使用说明、监控运行，并在几天内向主管部门通报严重事件——却几乎看不到模型是怎么造出来的。"]
+  ] },
+  distributors:{ tag:"价值链", name:"分销者", essence:"授权、进口与集成", fields:[
+    ["他们是谁","负责将 AI 模型授权、进口或集成进上市产品的<strong>进口商与集成商</strong>——供应链的结缔组织。"],
+    ["他们想要什么","让他们承运的产品有一条顺畅的上市通道，并搞清楚哪项合规义务归谁。"],
+    ["他们害怕什么","因贴牌或重大修改而被重新归类为\"提供者\"——从而继承其全部义务。"],
+    ["他们能做什么","在分销前核实文档和合规声明是否齐备，并配合主管部门。"],
+    ["什么在约束他们","一进入欧盟市场就被触发的合规义务，以及一旦他们把自己的名号贴上系统或对其做重大修改，角色就翻转为完整的提供者。"]
+  ] },
+  inputs:{ tag:"价值链", name:"AI 投入供应方", essence:"供应数据、模型与算力", fields:[
+    ["他们是谁","为构建和运行 AI 供应<strong>关键投入</strong>的供应方——训练数据、基础模型和计算基础设施。他们撮合数据、出租数据中心、研究模型架构。"],
+    ["他们想要什么","对算力、数据和模型的持久需求——并占据价值链上的咽喉要道。"],
+    ["他们害怕什么","供应过剩、芯片出口管制，以及对训练数据来源方式的审视。"],
+    ["他们能做什么","把守稀缺算力和数据的门禁，制定价格和条款，并引导 AI 模型类型的研究方向。"],
+    ["什么在约束他们","资本密集的基础设施、能源与硬件约束、出口限制，以及日益增大的数据溯源与版权压力。"]
+  ] },
+  legislators:{ tag:"规则制定者", name:"立法者", essence:"起草法律", fields:[
+    ["他们是谁","民选的<strong>立法者</strong>——国家议会与州议会——肩负制定反映选民意志之法律的职责。"],
+    ["他们想要什么","既能保护公众、反映选民，又不至于扼杀一个具战略意义之产业的规则。"],
+    ["他们害怕什么","面对一项快速演进的技术，立法太慢——或太粗放，从而抑制创新或偏离靶心。"],
+    ["他们能做什么","通过有约束力的法律（欧盟《人工智能法案》、美国各州 AI 法案），为监督拨款，并界定监管者执行的职权范围。"],
+    ["什么在约束他们","缓慢的立法周期、技术的复杂性、产业的重度游说，以及止步于国界的管辖权。"]
+  ] },
+  regulators:{ tag:"规则制定者", name:"监管者", essence:"落实与执法", fields:[
+    ["他们是谁","<strong>非民选的政府机构</strong>——数字部门、通信与数据保护主管机关——负责落实并执行立法所设定的规则。"],
+    ["他们想要什么","在一个复杂、快速变化的市场里实现有效、可信的执法与合规。"],
+    ["他们害怕什么","被技术甩在身后、资源不足以胜任，或被自己监管的产业所俘获。"],
+    ["他们能做什么","发布指引、开展调查、审计、罚款和制裁——决定法律在实践中究竟怎么咬人。"],
+    ["什么在约束他们","权力受其授权立法所限、技术人手和预算单薄，以及相对开发者的信息不对称。"]
+  ] },
+  standards:{ tag:"规则制定者", name:"标准制定者", essence:"制定技术标准", fields:[
+    ["他们是谁","存在于<strong>国家政府之外</strong>的机构——如 ISO/IEC 和 NIST——负责制定共享的标准和术语，让各组织能够协作并证明 AI 值得信赖。"],
+    ["他们想要什么","让通用、可互操作的标准被广泛采用，成为良好实践的参照基准。"],
+    ["他们害怕什么","分裂成互相竞争的国家标准，或标准落后于技术、失去相关性。"],
+    ["他们能做什么","制定并完善标准（ISO/IEC 42001、NIST AI RMF），供监管者和买家作为基准倚仗。"],
+    ["什么在约束他们","除非法律引用，标准都是自愿的；共识流程缓慢；而且他们自身没有任何执法权。"]
+  ] },
+  research:{ tag:"塑造者", name:"研究机构", essence:"引领对 AI 的理解", fields:[
+    ["他们是谁","高校和大型科技公司里的 AI <strong>研究机构</strong>，引领对 AI 用途、风险和治理最佳实践的理解——侧重点和范围各不相同。"],
+    ["他们想要什么","推进科学、主导风险与安全议程，并让自己的研究成果影响政策与实践。"],
+    ["他们害怕什么","被决策者忽视、因资助方而丧失独立性，或研究被部署速度反超。"],
+    ["他们能做什么","研究前沿 AI（智能体系统、灾难性风险缓解、基础设施），发表成果，并向政府和企业提供建议。"],
+    ["什么在约束他们","对资金的依赖、比产业更慢的节奏，以及几乎没有强制任何人照其结论行动的权力。"]
+  ] }
+};
+const ECO_ACTORS_ZH_B = {
+  intlorgs:{ tag:"塑造者", name:"国际组织", essence:"跨境召集协调", fields:[ ["他们是谁","<strong>跨司法辖区召集AI对话</strong>的机构——一个制定共同原则、分享最佳实践、协调多边协议的论坛。"],["他们想要什么","跨境的协调统一与互操作性，使治理不至于在各个司法辖区之间四分五裂。"],["他们害怕什么","地缘政治僵局、择地行事（forum-shopping），以及各国签了却从不落实的原则。"],["他们能做什么","主办召集活动（UN General Assembly、G7）、制定原则（OECD AI Principles、行为准则），并谈判条约（Council of Europe AI条约）。"],["什么限制着他们","没有超国家的强制执行力——产出只在成员自愿采纳的范围内具有约束力；达成共识既难又慢。"] ] },
+  civil:{ tag:"塑造者", name:"公民社会", essence:"为公共利益发声", fields:[ ["他们是谁","<strong>倡导团体与公民权利组织</strong>，它们推动政策目标、研究公共利益议题，并为各类组织提供指引。"],["他们想要什么","保护权利、公平和弱势群体的AI——以及在治理决策中真正拥有一席之地。"],["他们害怕什么","在资源上被产业界碾压、在决策中被边缘化，而危害却落在他们所代表的社群身上。"],["他们能做什么","开展倡导活动、提起诉讼、做研究、动员公众舆论，并向政府和企业双方施压。"],["什么限制着他们","相对于产业界，资金与话语渠道有限，且只能依靠说服和施压，而非正式权力。"] ] },
+  assurance:{ tag:"市场使能者", name:"鉴证与工具供应商", essence:"审计、测试与治理工具", fields:[ ["他们是谁","<strong>填补鉴证空白</strong>并为AI治理提供工具的供应商——这是一个预计到2030年将价值数十亿美元的新兴市场。"],["他们想要什么","一个庞大而持久的鉴证市场，随着治理义务转化为对审计和工具的需求而不断增长。"],["他们害怕什么","严谨性上的逐底竞争、利益冲突，以及侵蚀鉴证本身公信力的“治理洗白”（governance-washing）。"],["他们能做什么","提供治理、风险与合规（GRC）工具，开展外部审计，测试和评估系统，并审查代码与数据。"],["什么限制着他们","鉴证的强度取决于其背后的标准；对模型和数据的访问往往受限，而独立性也必须加以管理。"] ] },
+  services:{ tag:"市场使能者", name:"服务与咨询供应商", essence:"提供法律与合规建议", fields:[ ["他们是谁","<strong>支持法律、管理与合规工作</strong>的供应商——从事AI治理的律师事务所、咨询公司与顾问。"],["他们想要什么","在各组织手忙脚乱地应对新义务之际，咨询业务能有稳定的需求。"],["他们害怕什么","咨询建议被同质化、沦为大路货，以及把合规当作打勾了事而非一项持续项目的客户。"],["他们能做什么","提供法律意见和资质认证，并就AI治理框架和流程编排提供建议。"],["什么限制着他们","仅限于咨询——他们提供指引，却不掌控结果；在这个拥挤的市场里，质量和独立性参差不齐。"] ] },
+  associations:{ tag:"市场使能者", name:"专业协会", essence:"培训并认证从业者", fields:[ ["他们是谁","通过研究、会议和认证项目，为AI治理领域提供<strong>专业指引</strong>的协会。"],["他们想要什么","让AI治理专业化，并成为其从业者公认的归属之家。"],["他们害怕什么","认证跟不上领域的发展步伐，或是相互竞争的证书导致各自为政、分崩离析。"],["他们能做什么","组织会议和活动、提供认证，并构建社群与共享知识。"],["什么限制着他们","影响力偏软——他们设定的是规范和证书，而非法律；能否被采纳，取决于雇主是否看重它们。"] ] },
+  investors:{ tag:"市场使能者", name:"股东与投资者", essence:"资助创新，期待回报", fields:[ ["他们是谁","<strong>对冲基金、风险投资与养老基金，以及创始人</strong>，他们确保公司在创新上投入充分，同时规避损失、把风险降到最低。"],["他们想要什么","公司借助AI提升效率和回报，同时管理好随之而来的风险——增长要有护栏。"],["他们害怕什么","AI失灵、监管冲击或泡沫破裂所带来的价值毁灭。"],["他们能做什么","将资本导向或撤离AI押注，设定对风险与回报的预期，并就治理向董事会施压。"],["什么限制着他们","短期回报压力可能与审慎治理相抵触，而且他们对被投公司内部的技术风险缺乏足够的洞察力。"] ] },
+  endusers:{ tag:"承受者", name:"终端用户", essence:"使用它，并承受其结果", fields:[ ["他们是谁","<strong>使用AI赋能产品</strong>并承受其结果的<strong>人和组织</strong>——整个生态系统所服务的价值链末端。"],["他们想要什么","有用、安全、定价公道、值得信赖的产品——以及对AI如何影响其生活的一定发言权。"],["他们害怕什么","在他们所依赖的产品中遭遇危害、操纵、偏见或不透明，却几乎无处申诉。"],["他们能做什么","施加直接和间接的消费者影响力——采纳或拒绝产品、投诉、转投他家，并塑造需求。"],["什么限制着他们","信息不对称、可选替代有限，除市场和选票之外几乎没有正式权力。"] ] }
+};
+
+const ECO_RELATIONS_ZH = [
+  {title:"提供研究洞见与倡导", text:"研究机构将关于AI应用、风险与最佳实践的证据输送给立法者——影响哪些内容会被监管、以及如何监管。"},
+  {title:"提供研究洞见与倡导", text:"国际机构（OECD、G7、Council of Europe）自上而下地把通用原则和指南推行到AI开发者的实践之中。"},
+  {title:"提供研究洞见与倡导", text:"公民社会研究涉及公共利益的危害，并直接向开发者倡导更公平、更安全的系统。"},
+  {title:"制定规则", text:"监管机构把立法转化为可执行的要求，开发者必须据此进行构建。"},
+  {title:"制定标准", text:"标准制定者提供共享的基准（ISO/IEC 42001、NIST AI RMF），供部署者采纳以证明其可信使用。"},
+  {title:"影响规则", text:"开发者把技术现实——以及游说——反馈给立法者，在立法落地之前就对其施加影响。"},
+  {title:"提供工具与保障", text:"保障服务商对开发者构建的系统进行审计、测试和工具化，填补原则与证明之间的空白。"},
+  {title:"提供咨询与服务", text:"法律、合规与顾问类服务商帮助部署者履行义务，并统筹治理流程。"},
+  {title:"提供知识与社群", text:"专业协会培训、认证并连接那些在部署组织内部负责AI治理的从业者。"},
+  {title:"期待回报与风险缓释", text:"股东和投资者为规模化建设提供资金，并施压要求效率与增长——同时期待风险得到管理。"},
+  {title:"供给数据、模型与算力", text:"投入品供应商向开发者提供关键的生产要素——训练数据、基础模型和计算基础设施。"},
+  {title:"打造并分发产品", text:"分销商对AI产品进行授权、集成并推向市场，把它们送到终端用户手中。"},
+  {title:"提供消费者影响力", text:"终端用户沿产业链向上施加直接和间接的影响——采纳、拒绝并塑造对AI产品的需求。"}
+];
+
+const REGULATIONS_ZH = {
+  "eu-ai-act":{ name:"欧盟《人工智能法案》（EU AI Act）", jurisdiction:"欧盟", constrains:"全球唯一一部按风险分级的综合性人工智能法。禁止'不可接受风险'的用途，监管 GPAI（通用人工智能）模型，并用一堆合规评估把高风险系统压得死死的。具有域外效力——只要碰了欧盟市场，你就在管辖范围内。", tension:"布鲁塞尔效应 vs. 创新外流。连欧盟自己都退缩了：高风险义务推迟到 2027 年 12 月。", penalties:"违反禁止性行为最高可处全球营业额的 7%", keyDates:{ "inForce":"2024-08-01", "prohibitedPractices":"2025-02-02", "gpaiObligations":"2025-08-02", "highRiskObligations":"2027-12-02（从 2026 年 8 月推迟；2026 年 6 月通过《数字综合法案》正式采纳）" } },
+  "us-eo-national-framework":{ name:"美国行政命令：确保人工智能的国家政策框架", jurisdiction:"美国（联邦）", constrains:"指示联邦机构通过诉讼和资金杠杆挑战各州人工智能法律，设立了人工智能诉讼工作组（AI Litigation Task Force），并推动一套轻触式的国家标准。它本身并不能优先排除州法——那场仗要在法庭上打。", tension:"联邦去监管 vs. 各州立法。它点名批评了科罗拉多州的法律；DOJ 介入了 xAI 对该法的诉讼。", penalties:null },
+  "ca-sb53":{ name:"加州 SB 53——《前沿人工智能透明度法》（TFAIA）", jurisdiction:"美国加州", constrains:"美国首部直接瞄准前沿模型（>10^26 FLOPs、营收 $500M+ 的开发者）的法律。强制要求公开安全框架、部署前透明度报告、15天内向州当局报告事故，以及吹哨人保护。", tension:"把实验室的自愿承诺变成可强制执行的义务——以披露为监管。适用对象也许只有五家公司；却塑造着整个行业。", penalties:"每次违规最高 $1M，由总检察长执法" },
+  "ca-transparency-stack":{ name:"加州人工智能透明度法组合（AB 2013、SB 942/AB 853）", jurisdiction:"美国加州", constrains:"AB 2013 强制生成式人工智能开发者公开训练数据文档。SB 942（经 AB 853 修订）要求对人工智能内容做标识和来源溯源检测，并在 2028 年前分阶段落实平台、托管和采集设备的义务。", tension:"训练数据的透明度，与商业秘密以及版权诉讼风险正面相撞。", penalties:"每次违规每天 $5,000（SB 942）" },
+  "co-ai-act":{ name:"科罗拉多州人工智能法（修订版，SB 26-189）", jurisdiction:"美国科罗拉多州", constrains:"一场大撤退。2024 年的原版法律照搬了欧盟的风险管理模式；在联邦施压和 xAI 一纸诉状之下，它在两周内被废止并替换。改写后的版本保留了自动化决策在重大领域中的告知、人工复核权和记录留存——却删掉了影响评估和注意义务。", tension:"一个关于联邦逆风如何重塑州法的案例。从'高风险人工智能系统'变成'自动化决策技术'——'人工智能'这个词组再也没有出现过。", penalties:"通过消费者保护／欺骗性商业行为条款执法" },
+  "tx-traiga":{ name:"德州《负责任人工智能治理法》（TRAIGA）", jurisdiction:"美国德州", constrains:"基于意图的禁止（行为操纵、非法歧视、某些生物识别用途），而非欧盟式的风险分级。对政府使用人工智能的约束重于私营部门。设有监管沙盒。", tension:"'红州模式'：既反觉醒又反大型科技公司——禁止蓄意歧视，却拒绝差别性影响（disparate-impact）责任。", penalties:"由德州总检察长执法的民事处罚" },
+  "ny-raise":{ name:"纽约州 RAISE 法", jurisdiction:"美国纽约州", constrains:"纽约对 SB 53 的回应：大型前沿开发者必须维护安全计划、在 72小时内报告事故并公开披露。2025 年 12 月签署，2026 年 3 月的一项章程修正案将其软化。", tension:"如今有两个州都在监管总部不在自己辖内的前沿实验室——把算力阈值当作管辖权。", penalties:"民事处罚，由总检察长执法" },
+  "kr-ai-framework-act":{ name:"韩国《人工智能框架法》（AI 基本法）", jurisdiction:"韩国", constrains:"继欧盟之后第二部综合性国家人工智能法。对敏感领域的'高影响'人工智能设定义务、要求人工智能内容标识、并为大规模模型设定安全职责——同时搭配明确的产业促进措施。", tension:"以监管为产业政策：约束到刚好足以被信任，促进到足以参与竞争。", penalties:"行政罚款（以欧盟标准看算温和）" },
+  "jp-ai-promotion-act":{ name:"日本《人工智能促进法》", jurisdiction:"日本", constrains:"几乎不约束。一个刻意为之的软法框架：促进人工智能发展、设立战略总部、依靠合作义务而非处罚。反欧盟人工智能法案的那一种。", tension:"押注轻触式监管能赢下创新竞赛；批评者称之为监管表演。", penalties:"无（没有直接制裁）" },
+  "cn-genai-rules":{ name:"中国生成式人工智能规则体系", jurisdiction:"中国", constrains:"不是一部大而全的综合法，而是迭代式、分领域的规则：算法推荐规则（2022）、深度合成规则（2023）、要求安全评估并与'核心社会主义价值观'保持一致的《生成式人工智能暂行办法》（2023），以及强制性的人工智能内容标识办法（2025 年 9 月）。", tension:"内容管控与政党一致性优先，安全洗白其次——但在具约束力的规则上，中国推进得比几乎任何人都快。", penalties:"吊销许可、暂停服务、依《网络安全法》（Cybersecurity Law）罚款" },
+  "uk-sectoral":{ name:"英国亲创新（分领域）路径", jurisdiction:"英国", constrains:"没有专门的人工智能立法。现有监管机构（ICO、FCA、CMA、Ofcom）在各自职权范围内适用五项跨领域原则。通过《在线安全法》和《数据（使用与获取）法 2025》间接覆盖。一项议员个人提出的人工智能监管法案正在上议院缓慢推进。", tension:"人工智能安全研究院（AI Security Institute）的所在地，却拒签 2025 年峰会宣言——有安全研究，没有安全立法。", penalties:"仅通过现有分领域监管机构" },
+  "coe-framework-convention":{ name:"欧洲委员会《人工智能框架公约》", jurisdiction:"国际（条约）", constrains:"首部具约束力的国际人工智能条约，涵盖人权、民主和法治。欧盟、英国、美国等在 2024 年 9 月签署——但义务落在国家而非企业身上，且执行力度偏软。", tension:"名义上具约束力，实践中止于愿景。美国是在一届政府任内签署的；下一届是否兑现，还是个未知数。", penalties:"无（国家报告机制）" },
+  "nist-ai-rmf":{ name:"NIST 人工智能风险管理框架（NIST AI RMF）", jurisdiction:"美国（自愿性，全球采纳）", constrains:"自愿性，却是人工智能治理项目事实上的操作系统：治理、映射、度量、管理。被州法律、采购规则和保险公司引用——通过合同硬化的软法。", tension:"一个自愿性框架，做着联邦立法不肯做的工作。", penalties:"无" }
+};
+const STATUS_ZH = { "in-force":"已生效", "phased":"分阶段实施中", "enacted-pending":"已颁布 · 待生效", "provisional":"临时性", "non-statutory":"非法定", "voluntary":"自愿性" };
+const SLUG_LABEL_ZH = { "eu":"欧盟", "us-federal":"美国联邦政府", "us-states":"美国各州", "korea":"韩国", "japan":"日本", "china":"中国", "uk":"英国", "council-of-europe":"欧洲委员会", "standards-bodies":"标准机构", "frontier-labs":"前沿实验室", "big-tech":"大型科技公司", "startups":"初创公司", "developers":"开发者", "domestic-industry":"本国产业", "platforms":"平台", "enterprises-deploying-ai":"部署人工智能的企业", "government-agencies":"政府机构", "federal-agencies":"联邦机构", "signatory-states":"签署国" };
+const REG_SHORT_ZH = { "eu-ai-act":"欧盟《人工智能法案》", "us-eo-national-framework":"美国人工智能行政命令", "ca-sb53":"加州 SB 53", "ca-transparency-stack":"加州透明度法组合", "co-ai-act":"科罗拉多州人工智能法", "tx-traiga":"德州 TRAIGA", "ny-raise":"纽约州 RAISE 法", "kr-ai-framework-act":"韩国人工智能框架法", "jp-ai-promotion-act":"日本人工智能促进法", "cn-genai-rules":"中国生成式人工智能规则", "uk-sectoral":"英国分领域路径", "coe-framework-convention":"欧委会人工智能公约", "nist-ai-rmf":"NIST AI RMF" };
+const DATE_KEY_ZH = { "inForce":"生效","prohibitedPractices":"禁止性行为","gpaiObligations":"GPAI 义务","highRiskObligations":"高风险义务","signed":"签署","litigationTaskForce":"诉讼工作组","effective":"生效","ab2013Effective":"AB 2013 生效","sb942Effective":"SB 942 生效","hostingPlatforms":"托管平台","captureDevices":"采集设备","originalSigned":"原版签署","replacementSigned":"替换版签署","amended":"修订","enacted":"颁布","algorithmRules":"算法规则","deepSynthesis":"深度合成","genAiInterimMeasures":"生成式人工智能暂行办法","contentLabeling":"内容标识","whitePaper":"白皮书","dataUseAccessAct":"《数据（使用与获取）法》","openedForSignature":"开放签署","v1Released":"1.0 版发布","genAiProfile":"生成式人工智能配置文件" };
+const SOURCES_ZH = [ "对法律、执法及治理这一职业最偏重实务的追踪", "涵盖 70+ 国家的国家人工智能政策的权威数据库", "《人工智能法案》的全文、实施时间表和合规检查工具", "关于人工智能进展、投资和政策活动的年度数据", "逐个会期追踪美国各州法律的拼凑格局", "对前沿人工智能治理与地缘政治的深度分析", "追踪法律之下的标准层（ISO/IEC 42001、CEN-CENELEC）", "关于前沿模型治理、算力治理和制度设计的研究" ];
+const ECO_ACTORS_ZH = Object.assign({}, ECO_ACTORS_ZH_A, ECO_ACTORS_ZH_B);
+REG_META.disclaimerZh = "截至 2026 年 7 月的状态。部分条目仍有争议或正在诉讼中（尤其是美国联邦试图优先排除各州 AI 法律一事）。依赖前请自行核实。";
+
+// ---- UI chrome strings ----
+const UI = {
+  en:{
+    kicker:"AI Governance Ecosystem (working prototype)",
+    h1:"Everyone here has more power than you'd think — and is more <em>boxed in</em> than they'd admit.",
+    viewBoard:"Simplified view", viewEco:"The Ecosystem",
+    constraintsLens:"Constraints lens", rulesLens:"Rules lens",
+    constraintsLensTip:"Reframe every actor around what constrains it",
+    rulesLensTip:"Surface who makes rules and who is bound by them",
+    ledeBoard:"The race to build advanced AI isn't one story — it's <strong>many actors</strong> pulling with and against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.",
+    ledeEco:"Zoom out from the four to the <strong>fifteen</strong>: the full AI-governance ecosystem — who builds AI, who makes the rules, who shapes the debate, and who lives with the results. Adapted from the IAPP map. Pick an actor, or trace a flow between two.",
+    hintBoard:"Tap an actor to open its card · tap a line to read the tension · flip the lens to surface constraints",
+    hintEco:"Tap an actor to open its card · tap a line to trace the flow · flip the lens to surface constraints",
+    railBoard:"The tensions — what pulls against what", railEco:"The flows — who provides what to whom",
+    relVerbBoard:"pulls against", relVerbEco:"provides to", relKindBoard:"Tension", relKindEco:"Flow",
+    actor:"Actor", rules:"Rules", boundBy:"Bound by", makes:"Makes",
+    between:"Between", whatsInTension:"What's in tension", theFlow:"The flow",
+    regulation:"Regulation", constrainsLabel:"What it actually constrains", tensionLabel:"The tension",
+    makesBinds:"Who makes it → who it binds", madeByLabel:"Made by", bindsLabel:"Binds",
+    penaltyLabel:"Penalty", keyDatesLabel:"Key dates", sourceLabel:"Source",
+    noBindees:"No direct corporate bindees — runs to states / voluntary",
+    riHeading:"The rules — every regulation on the board",
+    fJur:"Jurisdiction", fStatus:"Status", fBinds:"Binds",
+    allJur:"All jurisdictions", allStatus:"All statuses", anyActor:"Any actor",
+    sortEarliest:"Earliest first ↑", sortLatest:"Latest first ↓",
+    riEmpty:"No regulations match these filters.",
+    sourcesLabel:"Sources & further reading",
+    footNote:"This is a working prototype, one of my explorations on visual explainers for AI governance. The ecosystem map here (who each actor is, wants, fears, and what limits them) took reference from (1) bluedot's <code>AGI Strategy</code> course and (2) the IAPP report on <code>Mapping and understanding the AI governance ecosystem</code>.",
+    disclaimer:REG_META.disclaimer
   },
-  eco:{
-    key:'eco', factions:ECO_GROUPS, actors:ECO_ACTORS, relations:ECO_RELATIONS,
-    compact:true, directional:true, relVerb:'provides to', relKind:'Flow',
-    railLabel:'The flows — who provides what to whom',
-    hint:'Tap an actor to open its card · tap a line to trace the flow · flip the lens to surface constraints',
-    lede:'Zoom out from the four to the <strong>fifteen</strong>: the full AI-governance ecosystem — who builds AI, who makes the rules, who shapes the debate, and who lives with the results. Adapted from the IAPP map. Pick an actor, or trace a flow between two.'
+  zh:{
+    kicker:"AI 治理生态（工作原型）",
+    h1:"这里的每一方都比你以为的更有权力——也比他们愿意承认的更<em>受制于人</em>。",
+    viewBoard:"简化视图", viewEco:"生态全景",
+    constraintsLens:"约束视角", rulesLens:"规则视角",
+    constraintsLensTip:"以“什么在约束它”重新审视每一方",
+    rulesLensTip:"凸显谁制定规则、谁被规则约束",
+    ledeBoard:"构建先进 AI 的竞赛不是一个故事——而是<strong>众多参与者</strong>相互拉扯、又彼此角力，各自追逐所求，也被各自的局限所困。抱负与约束之间的落差，正是治理真正发生的地方。挑一个参与者，或追踪两者之间的张力。",
+    ledeEco:"从四方放大到<strong>十五方</strong>：完整的 AI 治理生态——谁在构建 AI、谁在制定规则、谁在塑造辩论、谁在承受结果。改编自 IAPP 的图谱。挑一个参与者，或追踪两者之间的流动。",
+    hintBoard:"点按参与者打开卡片 · 点按连线阅读张力 · 切换视角以显现约束",
+    hintEco:"点按参与者打开卡片 · 点按连线追踪流动 · 切换视角以显现约束",
+    railBoard:"张力——什么在与什么角力", railEco:"流动——谁向谁提供什么",
+    relVerbBoard:"角力于", relVerbEco:"提供给", relKindBoard:"张力", relKindEco:"流动",
+    actor:"参与者", rules:"规则", boundBy:"受约束", makes:"制定",
+    between:"双方", whatsInTension:"张力何在", theFlow:"这一流动",
+    regulation:"法规", constrainsLabel:"它实际约束了什么", tensionLabel:"张力所在",
+    makesBinds:"谁制定 → 谁被约束", madeByLabel:"制定者", bindsLabel:"约束对象",
+    penaltyLabel:"处罚", keyDatesLabel:"关键时间点", sourceLabel:"来源",
+    noBindees:"无直接约束的企业对象——面向国家／自愿性",
+    riHeading:"规则总览——图谱上的每一部法规",
+    fJur:"司法辖区", fStatus:"状态", fBinds:"约束对象",
+    allJur:"全部辖区", allStatus:"全部状态", anyActor:"任一参与者",
+    sortEarliest:"最早在前 ↑", sortLatest:"最新在前 ↓",
+    riEmpty:"没有符合这些筛选条件的法规。",
+    sourcesLabel:"来源与延伸阅读",
+    footNote:"这是一个工作原型，是我在 AI 治理可视化解读方面的探索之一。此处的生态图谱（每一方是谁、想要什么、害怕什么、又被什么所限）参考了 (1) bluedot 的 <code>AGI Strategy</code> 课程，以及 (2) IAPP 的报告 <code>Mapping and understanding the AI governance ecosystem</code>。",
+    disclaimer:REG_META.disclaimerZh
   }
 };
+
+let LANG='en';
+try{ const _s=localStorage.getItem('agb_lang'); if(_s==='zh'||_s==='en')LANG=_s; }catch(e){}
+function U(k){ return (UI[LANG]&&UI[LANG][k]!==undefined)?UI[LANG][k]:UI.en[k]; }
+
+// merge English geometry/structure with active-language text
+function langActors(base, zh){
+  if(LANG==='en'||!zh) return base;
+  const out={};
+  Object.entries(base).forEach(([k,a])=>{
+    const t=zh[k];
+    if(!t){ out[k]=a; return; }
+    out[k]={...a, tag:t.tag||a.tag, name:t.name||a.name, essence:t.essence||a.essence,
+      fields:a.fields.map((f,i)=>(t.fields&&t.fields[i])?[t.fields[i][0],t.fields[i][1],f[2]]:f)};
+  });
+  return out;
+}
+function langFactions(base, zh){
+  if(LANG==='en'||!zh) return base;
+  const out={};
+  Object.entries(base).forEach(([k,f])=>{ out[k]={...f, name:zh[k]||f.name}; });
+  return out;
+}
+function langRelations(base, zh){
+  if(LANG==='en'||!zh) return base;
+  return base.map((r,i)=>(zh[i])?{...r, title:zh[i].title, text:zh[i].text}:r);
+}
+function langRegs(){
+  if(LANG==='en') return REGULATIONS;
+  return REGULATIONS.map(r=>{
+    const t=REGULATIONS_ZH[r.id]; if(!t) return r;
+    return {...r, name:t.name||r.name, jurisdiction:t.jurisdiction||r.jurisdiction,
+      constrains:t.constrains||r.constrains, tension:t.tension||r.tension,
+      penalties:(t.penalties!==undefined)?t.penalties:r.penalties,
+      keyDates:t.keyDates||r.keyDates};
+  });
+}
+let REGS = langRegs();
+function ecoActorName(id){ return (LANG==='zh'&&ECO_ACTORS_ZH[id]&&ECO_ACTORS_ZH[id].name)?ECO_ACTORS_ZH[id].name:ECO_ACTORS[id].name; }
+function slugLabel(s){ return (LANG==='zh'&&SLUG_LABEL_ZH[s])?SLUG_LABEL_ZH[s]:(SLUG_LABEL[s]||s); }
+function dateLabel(k){ return (LANG==='zh'&&DATE_KEY_ZH[k])?DATE_KEY_ZH[k]:humanKey(k); }
+
+// ---- View registry: the mode switch flips between these two (language-aware) ----
+function buildViews(){
+  return {
+    board:{ key:'board',
+      factions:langFactions(FACTIONS,FACTIONS_ZH), actors:langActors(ACTORS,ACTORS_ZH), relations:langRelations(TENSIONS,TENSIONS_ZH),
+      compact:false, directional:false, relVerb:U('relVerbBoard'), relKind:U('relKindBoard'),
+      railLabel:U('railBoard'), hint:U('hintBoard'), lede:U('ledeBoard') },
+    eco:{ key:'eco',
+      factions:langFactions(ECO_GROUPS,ECO_GROUPS_ZH), actors:langActors(ECO_ACTORS,ECO_ACTORS_ZH), relations:langRelations(ECO_RELATIONS,ECO_RELATIONS_ZH),
+      compact:true, directional:true, relVerb:U('relVerbEco'), relKind:U('relKindEco'),
+      railLabel:U('railEco'), hint:U('hintEco'), lede:U('ledeEco') }
+  };
+}
+let VIEWS = buildViews();
 
 const board=document.getElementById('board');
 const svg=document.getElementById('edges');
@@ -1219,8 +1482,14 @@ const REG_SHORT = {
   'uk-sectoral':'UK sectoral approach',
   'cn-genai-rules':'China GenAI rules'
 };
-function regShort(reg){return REG_SHORT[reg.id]||reg.name.split(/ — |: | \(/)[0].trim();}
-function statusMeta(s){return REG_STATUS[s]||{label:s,color:'var(--text-dim)',fill:'solid'};}
+function regShort(reg){
+  if(LANG==='zh') return REG_SHORT_ZH[reg.id]||reg.name;
+  return REG_SHORT[reg.id]||reg.name.split(/ — |: | \(/)[0].trim();
+}
+function statusMeta(s){
+  const m=REG_STATUS[s]||{label:s,color:'var(--text-dim)',fill:'solid'};
+  return {label:(LANG==='zh'&&STATUS_ZH[s])?STATUS_ZH[s]:m.label, color:m.color, fill:m.fill};
+}
 function regChip(reg){
   const sm=statusMeta(reg.status);
   const b=document.createElement('button');
@@ -1240,7 +1509,7 @@ function openActor(key){
   const a=view.actors[key];
   selectedActor=key;highlightActor(key);
   panel.style.setProperty('--pc',view.factions[grp(key)].color);
-  pTag.textContent=a.tag+' · Actor';
+  pTag.textContent=a.tag+' · '+U('actor');
   pTitle.textContent=a.name;
   pSub.textContent=a.essence;
   pBody.innerHTML=a.fields.map(fl=>
@@ -1252,15 +1521,15 @@ function openActor(key){
     if(binding.length||making.length){
       const wrap=document.createElement('div');
       wrap.className='field rules';
-      wrap.innerHTML='<h4>Rules</h4>';
+      wrap.innerHTML=`<h4>${U('rules')}</h4>`;
       if(binding.length){
         const sub=document.createElement('div');sub.className='rules-sub';
-        sub.textContent=`Bound by ${binding.length}`;
+        sub.textContent=`${U('boundBy')} ${binding.length}`;
         wrap.appendChild(sub);wrap.appendChild(regChipSet(binding));
       }
       if(making.length){
         const sub=document.createElement('div');sub.className='rules-sub makes';
-        sub.textContent=`Makes ${making.length}`;
+        sub.textContent=`${U('makes')} ${making.length}`;
         wrap.appendChild(sub);wrap.appendChild(regChipSet(making));
       }
       pBody.appendChild(wrap);
@@ -1285,9 +1554,9 @@ function resolveParties(slugs,map){
     const actorId=map[s];
     if(actorId&&ECO_ACTORS[actorId]){
       if(seen.has('a:'+actorId))return;seen.add('a:'+actorId);
-      out.push({label:ECO_ACTORS[actorId].name,actorId,color:ecoColor(actorId)});
+      out.push({label:ecoActorName(actorId),actorId,color:ecoColor(actorId)});
     }else{
-      const label=SLUG_LABEL[s]||s;
+      const label=slugLabel(s);
       if(seen.has('l:'+label))return;seen.add('l:'+label);
       out.push({label,actorId:null,color:'var(--text-dim)'});
     }
@@ -1312,28 +1581,28 @@ function openRegulation(id){
   highlightRegulation(reg); // synchronous: nodeEls are rebuilt synchronously by setView, so no race with close
   const sm=statusMeta(reg.status);
   panel.style.setProperty('--pc',sm.color);
-  pTag.textContent='Regulation';
+  pTag.textContent=U('regulation');
   pTitle.textContent=reg.name;
   pSub.innerHTML=`<span class="reg-jur">${reg.jurisdiction}</span>`;
   const makers=resolveParties(reg.madeBy,MAKER_TO_ACTOR);
   const binds=resolveParties(reg.binds,BINDS_TO_ACTOR);
   const party=p=>`<button class="reg-actor ${p.actorId?'link':'plain'}"${p.actorId?` data-actor="${p.actorId}"`:''}><i style="background:${p.color}"></i>${p.label}</button>`;
-  const dates=Object.entries(reg.keyDates||{}).map(([k,v])=>`<li><span class="dk">${humanKey(k)}</span><span>${v}</span></li>`).join('');
+  const dates=Object.entries(reg.keyDates||{}).map(([k,v])=>`<li><span class="dk">${dateLabel(k)}</span><span>${v}</span></li>`).join('');
   const host=reg.sourceUrl.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');
   pBody.innerHTML=
     `<div class="field"><span class="reg-badge"><span class="rb ${sm.fill}" style="--sc:${sm.color}"></span>${sm.label}</span></div>
-     <div class="field"><h4>What it actually constrains</h4><p>${reg.constrains}</p></div>
-     <div class="field"><h4>The tension</h4><p>${reg.tension}</p></div>
-     <div class="field"><h4>Who makes it → who it binds</h4>
-       <div class="rules-sub" style="margin-top:0">Made by</div>
+     <div class="field"><h4>${U('constrainsLabel')}</h4><p>${reg.constrains}</p></div>
+     <div class="field"><h4>${U('tensionLabel')}</h4><p>${reg.tension}</p></div>
+     <div class="field"><h4>${U('makesBinds')}</h4>
+       <div class="rules-sub" style="margin-top:0">${U('madeByLabel')}</div>
        <div class="reg-relation">${makers.map(party).join('')}</div>
-       <div class="rules-sub makes">Binds</div>
-       <div class="reg-relation">${binds.length?binds.map(party).join(''):'<span class="reg-actor plain"><i style="background:var(--text-dim)"></i>No direct corporate bindees — runs to states / voluntary</span>'}</div>
+       <div class="rules-sub makes">${U('bindsLabel')}</div>
+       <div class="reg-relation">${binds.length?binds.map(party).join(''):`<span class="reg-actor plain"><i style="background:var(--text-dim)"></i>${U('noBindees')}</span>`}</div>
      </div>
-     ${reg.penalties?`<div class="field"><h4>Penalty</h4><p>${reg.penalties}</p></div>`:''}
-     ${dates?`<div class="field"><h4>Key dates</h4><ul class="reg-dates">${dates}</ul></div>`:''}
-     <div class="field"><h4>Source</h4><a class="reg-source" href="${reg.sourceUrl}" target="_blank" rel="noopener">${host} ↗</a></div>
-     <div class="field"><p class="reg-note">${REG_META.disclaimer}</p></div>`;
+     ${reg.penalties?`<div class="field"><h4>${U('penaltyLabel')}</h4><p>${reg.penalties}</p></div>`:''}
+     ${dates?`<div class="field"><h4>${U('keyDatesLabel')}</h4><ul class="reg-dates">${dates}</ul></div>`:''}
+     <div class="field"><h4>${U('sourceLabel')}</h4><a class="reg-source" href="${reg.sourceUrl}" target="_blank" rel="noopener">${host} ↗</a></div>
+     <div class="field"><p class="reg-note">${U('disclaimer')}</p></div>`;
   pBody.querySelectorAll('.reg-actor.link').forEach(btn=>
     btn.addEventListener('click',()=>openActor(btn.getAttribute('data-actor'))));
   showPanel();
@@ -1357,13 +1626,13 @@ function openRelation(i){
   pTitle.textContent=t.title;
   pSub.innerHTML='';
   pBody.innerHTML=
-    `<div class="field"><h4>Between</h4>
+    `<div class="field"><h4>${U('between')}</h4>
       <div class="endpoints">
         <span class="ep"><i style="background:${ca}"></i>${A.name}</span>
         <span class="vs">${view.relVerb}</span>
         <span class="ep"><i style="background:${cb}"></i>${B.name}</span>
       </div></div>
-     <div class="field"><h4>${view.directional?'The flow':'What\'s in tension'}</h4><p>${t.text}</p></div>`;
+     <div class="field"><h4>${view.directional?U('theFlow'):U('whatsInTension')}</h4><p>${t.text}</p></div>`;
   showPanel();
 }
 function showPanel(){
@@ -1424,7 +1693,7 @@ const riBinds=document.getElementById('riBinds');
 const riSort=document.getElementById('riSort');
 const riList=document.getElementById('riList');
 const riCount=document.getElementById('riCount');
-document.getElementById('riDisclaimer').textContent=REG_META.disclaimer;
+const riDisclaimer=document.getElementById('riDisclaimer');
 let riSortAsc=true;
 
 function effDateRaw(reg){
@@ -1442,20 +1711,20 @@ function bindActorsOf(reg){
   return [...ids];
 }
 function buildRiFilters(){
-  const jurs=[...new Set(REGULATIONS.map(r=>r.jurisdiction))].sort();
-  riJur.innerHTML='<option value="">All jurisdictions</option>'+jurs.map(j=>`<option value="${j}">${j}</option>`).join('');
-  const statuses=[...new Set(REGULATIONS.map(r=>r.status))];
-  riStatus.innerHTML='<option value="">All statuses</option>'+statuses.map(s=>`<option value="${s}">${statusMeta(s).label}</option>`).join('');
-  const boundIds=[...new Set(REGULATIONS.flatMap(bindActorsOf))];
-  riBinds.innerHTML='<option value="">Any actor</option>'+boundIds.map(id=>`<option value="${id}">${ECO_ACTORS[id].name}</option>`).join('');
+  const jurs=[...new Set(REGS.map(r=>r.jurisdiction))].sort();
+  riJur.innerHTML=`<option value="">${U('allJur')}</option>`+jurs.map(j=>`<option value="${j}">${j}</option>`).join('');
+  const statuses=[...new Set(REGS.map(r=>r.status))];
+  riStatus.innerHTML=`<option value="">${U('allStatus')}</option>`+statuses.map(s=>`<option value="${s}">${statusMeta(s).label}</option>`).join('');
+  const boundIds=[...new Set(REGS.flatMap(bindActorsOf))];
+  riBinds.innerHTML=`<option value="">${U('anyActor')}</option>`+boundIds.map(id=>`<option value="${id}">${ecoActorName(id)}</option>`).join('');
 }
 function renderRegIndex(){
   const jf=riJur.value,sf=riStatus.value,bf=riBinds.value;
-  const rows=REGULATIONS.filter(r=>
+  const rows=REGS.filter(r=>
     (!jf||r.jurisdiction===jf)&&(!sf||r.status===sf)&&(!bf||bindActorsOf(r).includes(bf))
   ).sort((a,b)=>riSortAsc?dateSortKey(a)-dateSortKey(b):dateSortKey(b)-dateSortKey(a));
-  riCount.textContent=`${rows.length} of ${REGULATIONS.length}`;
-  if(!rows.length){riList.innerHTML='<div class="ri-empty">No regulations match these filters.</div>';return;}
+  riCount.textContent = LANG==='zh'?`${REGS.length} 条中显示 ${rows.length} 条`:`${rows.length} of ${REGS.length}`;
+  if(!rows.length){riList.innerHTML=`<div class="ri-empty">${U('riEmpty')}</div>`;return;}
   riList.innerHTML='';
   rows.forEach(r=>{
     const sm=statusMeta(r.status);
@@ -1473,21 +1742,66 @@ buildRiFilters();
 [riJur,riStatus,riBinds].forEach(el=>el.addEventListener('change',renderRegIndex));
 riSort.addEventListener('click',()=>{
   riSortAsc=!riSortAsc;
-  riSort.textContent=riSortAsc?'Earliest first ↑':'Latest first ↓';
+  riSort.textContent=riSortAsc?U('sortEarliest'):U('sortLatest');
   renderRegIndex();
 });
-renderRegIndex();
 
 // ---- sources (footer) ----
-document.getElementById('footSources').innerHTML=REG_SOURCES.map(s=>
-  `<div class="src-item"><a href="${s.url}" target="_blank" rel="noopener">${s.name} ↗</a><span class="why">${s.why}</span></div>`
-).join('');
+function renderSources(){
+  document.getElementById('footSources').innerHTML=REG_SOURCES.map((s,i)=>{
+    const why=(LANG==='zh'&&SOURCES_ZH[i])?SOURCES_ZH[i]:s.why;
+    return `<div class="src-item"><a href="${s.url}" target="_blank" rel="noopener">${s.name} ↗</a><span class="why">${why}</span></div>`;
+  }).join('');
+}
+
+// ---- static UI chrome (language-aware) ----
+function applyStaticUI(){
+  document.getElementById('kickerText').textContent=U('kicker');
+  document.getElementById('h1').innerHTML=U('h1');
+  modeBoard.innerHTML=`${U('viewBoard')}<span class="cnt">4</span>`;
+  modeEco.innerHTML=`${U('viewEco')}<span class="cnt">15</span>`;
+  lens.innerHTML=`<span class="pip"></span>${U('constraintsLens')}`;lens.title=U('constraintsLensTip');
+  rulesLens.innerHTML=`<span class="pip"></span>${U('rulesLens')}`;rulesLens.title=U('rulesLensTip');
+  document.getElementById('riHeading').textContent=U('riHeading');
+  document.getElementById('riJurLabel').textContent=U('fJur');
+  document.getElementById('riStatusLabel').textContent=U('fStatus');
+  document.getElementById('riBindsLabel').textContent=U('fBinds');
+  riSort.textContent=riSortAsc?U('sortEarliest'):U('sortLatest');
+  document.getElementById('footNote').innerHTML=U('footNote');
+  document.getElementById('sourcesLabel').textContent=U('sourcesLabel');
+  riDisclaimer.textContent=U('disclaimer');
+}
+
+// ---- language toggle ----
+const langSwitch=document.getElementById('langSwitch');
+function applyLangButtons(){
+  langSwitch.querySelectorAll('.lang-btn').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.lang===LANG)));
+}
+function setLang(l){
+  if(l===LANG)return;
+  LANG=l;
+  try{localStorage.setItem('agb_lang',l);}catch(e){}
+  document.documentElement.lang=(l==='zh')?'zh-Hans':'en';
+  applyLangButtons();
+  VIEWS=buildViews();REGS=langRegs();
+  applyStaticUI();buildRiFilters();renderRegIndex();renderSources();
+  closePanel();
+  view=VIEWS[view.key];
+  setView(view);
+}
+langSwitch.querySelectorAll('.lang-btn').forEach(b=>b.addEventListener('click',()=>setLang(b.dataset.lang)));
 
 // resize
 let raf;
 function onResize(){cancelAnimationFrame(raf);raf=requestAnimationFrame(buildEdges);}
 window.addEventListener('resize',onResize);
 
+// init
+document.documentElement.lang=(LANG==='zh')?'zh-Hans':'en';
+applyLangButtons();
+applyStaticUI();
+renderSources();
+renderRegIndex();
 setView(VIEWS.board);
 </script>
 </body>
