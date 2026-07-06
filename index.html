@@ -333,6 +333,17 @@
   .reg-source{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--indigo);text-decoration:none;word-break:break-word}
   .reg-source:hover{text-decoration:underline}
   .reg-note{font-size:12px;color:var(--text-dim);font-style:italic;line-height:1.5}
+  /* rules lens — node treatments (Ecosystem view only) */
+  .rule-badge{
+    position:absolute;top:-9px;right:-9px;min-width:20px;height:20px;padding:0 5px;
+    border-radius:999px;background:var(--fc);color:var(--bg);
+    font-family:var(--mono);font-size:11px;font-weight:500;
+    display:none;align-items:center;justify-content:center;z-index:4;
+    box-shadow:0 2px 6px rgba(0,0,0,.45);
+  }
+  body.rules .node.rule-bound .rule-badge{display:inline-flex}
+  body.rules .node.rule-maker{outline:2px solid var(--fc);outline-offset:2px}
+  body.rules .node:not(.rule-maker):not(.rule-bound){opacity:.4}
 
   @media(prefers-reduced-motion:reduce){
     .edge-flow{animation:none;opacity:.3}
@@ -359,6 +370,9 @@
       <div class="legend" id="legend"></div>
       <button class="lens-toggle" id="lens" aria-pressed="false" title="Reframe every actor around what constrains it">
         <span class="pip"></span>Constraints lens
+      </button>
+      <button class="lens-toggle" id="rulesLens" aria-pressed="false" title="Surface who makes rules and who is bound by them" style="display:none">
+        <span class="pip"></span>Rules lens
       </button>
     </div>
   </div>
@@ -1039,6 +1053,17 @@ function renderNodes(){
       <span class="n-name">${a.name}</span>
       <span class="n-essence">${a.essence}</span>
       <span class="n-limit">${lim?lim[1].replace(/<[^>]+>/g,''):''}</span>`;
+    // Rules lens metadata (Ecosystem view only): ring rule-makers, badge the count of binding rules.
+    if(view.key==='eco'){
+      if(getRegulationsMadeBy(key).length)b.classList.add('rule-maker');
+      const bindCount=getRegulationsBinding(key).length;
+      if(bindCount){
+        b.classList.add('rule-bound');
+        const bd=document.createElement('span');bd.className='rule-badge';bd.textContent=bindCount;
+        bd.setAttribute('aria-hidden','true');
+        b.appendChild(bd);
+      }
+    }
     b.addEventListener('click',()=>openActor(key));
     board.appendChild(b);nodeEls[key]=b;
   });
@@ -1294,6 +1319,13 @@ lens.addEventListener('click',()=>{
   lens.setAttribute('aria-pressed',String(!on));
   document.body.classList.toggle('lens',!on);
 });
+// rules lens (Ecosystem view only)
+const rulesLens=document.getElementById('rulesLens');
+rulesLens.addEventListener('click',()=>{
+  const on=rulesLens.getAttribute('aria-pressed')==='true';
+  rulesLens.setAttribute('aria-pressed',String(!on));
+  document.body.classList.toggle('rules',!on);
+});
 
 // view (mode) switching
 const modeBoard=document.getElementById('modeBoard');
@@ -1307,6 +1339,10 @@ function setView(v){
   ledeEl.innerHTML=v.lede;
   railLabel.textContent=v.railLabel;
   hintEl.textContent=v.hint;
+  // Rules lens is Ecosystem-only: show its toggle there, and reset it off elsewhere.
+  const eco=v.key==='eco';
+  rulesLens.style.display=eco?'':'none';
+  if(!eco){document.body.classList.remove('rules');rulesLens.setAttribute('aria-pressed','false');}
   renderLegend();renderNodes();renderMobile();renderChips();
   requestAnimationFrame(buildEdges);
 }
