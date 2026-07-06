@@ -382,6 +382,15 @@
     .ri-jur{grid-column:1;grid-row:2}
     .ri-date{grid-column:2;grid-row:2}
   }
+  /* ---------- sources ---------- */
+  .foot-sources{margin-top:30px;border-top:1px solid var(--line);padding-top:26px}
+  .foot-sources .rail-label{margin-bottom:16px}
+  .src-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:15px 30px}
+  .src-item{display:flex;flex-direction:column;gap:3px}
+  .src-item a{font-family:var(--display);font-weight:500;font-size:14px;color:var(--text-hi);text-decoration:none;display:inline-flex;align-items:center;gap:6px}
+  .src-item a:hover{color:var(--indigo)}
+  .src-item .why{font-size:12.5px;color:var(--text-dim);line-height:1.4}
+  @media(max-width:680px){.src-grid{grid-template-columns:1fr}}
 
   @media(prefers-reduced-motion:reduce){
     .edge-flow{animation:none;opacity:.3}
@@ -452,6 +461,10 @@
           This is a working prototype, one of my explorations on visual explainers for AI governance.
           The ecosystem map here (who each actor is, wants, fears, and what limits them) took reference from (1) bluedot's <code>AGI Strategy: Character Cards</code> and (2) the IAPP report on <code>Mapping and understanding the AI governance ecosystem</code>.
         </p>
+      </div>
+      <div class="foot-sources">
+        <div class="rail-label">Sources &amp; further reading</div>
+        <div class="src-grid" id="footSources"></div>
       </div>
     </footer>
   </div>
@@ -1464,6 +1477,11 @@ riSort.addEventListener('click',()=>{
   renderRegIndex();
 });
 renderRegIndex();
+
+// ---- sources (footer) ----
+document.getElementById('footSources').innerHTML=REG_SOURCES.map(s=>
+  `<div class="src-item"><a href="${s.url}" target="_blank" rel="noopener">${s.name} ↗</a><span class="why">${s.why}</span></div>`
+).join('');
 
 // resize
 let raf;
