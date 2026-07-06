@@ -765,7 +765,7 @@ const ECO_RELATIONS = [
 // ============================================================
 const REG_META = {
   "lastUpdated": "2026-07-06",
-  "disclaimer": "Statuses current as of July 2026. Several items are contested or provisional (EU high-risk delay, US federal preemption litigation). Verify before relying.",
+  "disclaimer": "Statuses current as of July 2026. Some items remain contested or in active litigation (notably the US federal effort to preempt state AI laws). Verify before relying.",
   "statusValues": ["in-force", "phased", "enacted-pending", "provisional", "non-statutory", "voluntary"]
 };
 
@@ -779,12 +779,12 @@ const REGULATIONS = [
     "madeBy": ["eu"],
     "binds": ["frontier-labs", "big-tech", "startups", "enterprises-deploying-ai"],
     "constrains": "The world's only comprehensive risk-tiered AI law. Bans 'unacceptable risk' uses, regulates GPAI models, and buries high-risk systems in conformity assessments. Applies extraterritorially — touch the EU market, you're in.",
-    "tension": "Brussels effect vs. innovation flight. Even the EU blinked: high-risk obligations provisionally delayed to 2027.",
+    "tension": "Brussels effect vs. innovation flight. Even the EU blinked: high-risk obligations delayed to Dec 2027.",
     "keyDates": {
       "inForce": "2024-08-01",
       "prohibitedPractices": "2025-02-02",
       "gpaiObligations": "2025-08-02",
-      "highRiskObligations": "2027 (provisionally delayed from Aug 2026; delay not yet formally adopted)"
+      "highRiskObligations": "2027-12-02 (delayed from Aug 2026; formally adopted Jun 2026 via the Digital Omnibus)"
     },
     "penalties": "Up to 7% of global turnover for prohibited practices",
     "sourceUrl": "https://artificialintelligenceact.eu/"
@@ -871,7 +871,7 @@ const REGULATIONS = [
     "constrains": "Intent-based prohibitions (behavioral manipulation, unlawful discrimination, certain biometric uses) rather than EU-style risk tiers. Heavier on government use of AI than private sector. Includes a regulatory sandbox.",
     "tension": "The 'red state model': anti-woke and anti-Big-Tech at once — bans intentional discrimination but rejects disparate-impact liability.",
     "keyDates": {
-      "effective": "2025-09-01"
+      "effective": "2026-01-01"
     },
     "penalties": "Civil penalties enforced by the Texas AG",
     "sourceUrl": "https://capitol.texas.gov/"
@@ -999,7 +999,7 @@ const REGULATIONS = [
 ];
 
 const REG_SOURCES = [
-  {"name": "IAPP AI Governance Center", "url": "https://iapp.org/resources/topics/ai-governance/", "why": "Best practitioner-oriented tracking of laws, enforcement, and the governance profession"},
+  {"name": "IAPP AI Governance Center", "url": "https://iapp.org/ai-governance", "why": "Best practitioner-oriented tracking of laws, enforcement, and the governance profession"},
   {"name": "OECD.AI Policy Observatory", "url": "https://oecd.ai/", "why": "Canonical database of national AI policies across 70+ countries"},
   {"name": "EU AI Act Explorer (FLI)", "url": "https://artificialintelligenceact.eu/", "why": "Full text, implementation timeline, and compliance checker for the AI Act"},
   {"name": "Stanford HAI AI Index", "url": "https://aiindex.stanford.edu/", "why": "Annual data on AI progress, investment, and policy activity"},
