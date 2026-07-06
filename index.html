@@ -311,6 +311,28 @@
   .rb.striped{background:repeating-linear-gradient(45deg,var(--sc),var(--sc) 2px,transparent 2px,transparent 4px)}
   .rb.outline{background:transparent;box-shadow:inset 0 0 0 1.5px var(--sc)}
   .rb.dashed{background:transparent;border:1.5px dashed var(--sc)}
+  /* regulation card */
+  .reg-jur{font-family:var(--mono);font-size:11px;letter-spacing:.06em;color:var(--text-dim);text-transform:uppercase}
+  .reg-badge{
+    display:inline-flex;align-items:center;gap:8px;
+    font-family:var(--mono);font-size:11px;letter-spacing:.05em;
+    color:var(--text-mid);border:1px solid var(--line);border-radius:999px;padding:5px 13px 5px 11px;
+  }
+  .reg-badge .rb{width:10px;height:10px}
+  .reg-relation{display:flex;flex-wrap:wrap;align-items:center;gap:9px 14px}
+  .reg-actor{
+    font-family:var(--display);font-weight:500;font-size:14px;color:var(--text-hi);
+    display:inline-flex;align-items:center;gap:7px;background:none;border:none;padding:0;cursor:pointer;
+  }
+  .reg-actor i{width:9px;height:9px;border-radius:2px;flex:none}
+  .reg-actor.plain{cursor:default;color:var(--text-mid)}
+  .reg-actor.link:hover{color:var(--pc,var(--gold))}
+  .reg-dates{list-style:none;display:flex;flex-direction:column;gap:8px}
+  .reg-dates li{display:flex;gap:14px;font-size:13.5px;color:var(--text-mid)}
+  .reg-dates .dk{font-family:var(--mono);font-size:11px;color:var(--text-dim);min-width:138px;letter-spacing:.03em;flex:none}
+  .reg-source{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--indigo);text-decoration:none;word-break:break-word}
+  .reg-source:hover{text-decoration:underline}
+  .reg-note{font-size:12px;color:var(--text-dim);font-style:italic;line-height:1.5}
 
   @media(prefers-reduced-motion:reduce){
     .edge-flow{animation:none;opacity:.3}
@@ -1151,6 +1173,76 @@ function openActor(key){
       pBody.appendChild(wrap);
     }
   }
+  showPanel();
+}
+// ---- regulation card ----
+function ecoColor(actorId){
+  const g=ECO_ACTORS[actorId].group, cssVar=ECO_GROUPS[g].color;
+  return getComputedStyle(document.documentElement).getPropertyValue(cssVar.match(/--[\w-]+/)[0]).trim();
+}
+function humanKey(k){
+  return k.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase())
+    .replace(/\bGpai\b/i,'GPAI').replace(/\bGen Ai\b/i,'GenAI').replace(/\bAi\b/g,'AI')
+    .replace(/\bV1\b/,'v1').replace(/\bAb2013\b/i,'AB 2013').replace(/\bSb942\b/i,'SB 942').trim();
+}
+// resolve madeBy/binds slugs → dedup list of {label, actorId|null, color}
+function resolveParties(slugs,map){
+  const seen=new Set(),out=[];
+  (slugs||[]).forEach(s=>{
+    const actorId=map[s];
+    if(actorId&&ECO_ACTORS[actorId]){
+      if(seen.has('a:'+actorId))return;seen.add('a:'+actorId);
+      out.push({label:ECO_ACTORS[actorId].name,actorId,color:ecoColor(actorId)});
+    }else{
+      const label=SLUG_LABEL[s]||s;
+      if(seen.has('l:'+label))return;seen.add('l:'+label);
+      out.push({label,actorId:null,color:'var(--text-dim)'});
+    }
+  });
+  return out;
+}
+function highlightRegulation(reg){
+  const ids=new Set();
+  (reg.madeBy||[]).forEach(s=>{if(MAKER_TO_ACTOR[s]&&ECO_ACTORS[MAKER_TO_ACTOR[s]])ids.add(MAKER_TO_ACTOR[s]);});
+  (reg.binds||[]).forEach(s=>{if(BINDS_TO_ACTOR[s]&&ECO_ACTORS[BINDS_TO_ACTOR[s]])ids.add(BINDS_TO_ACTOR[s]);});
+  Object.entries(nodeEls).forEach(([k,el])=>{
+    el.classList.toggle('selected',ids.has(k));
+    el.classList.toggle('dim',!ids.has(k));
+  });
+  edgeEls.forEach(({base,flow})=>{base.classList.remove('active');base.classList.add('dim');flow.classList.add('dim');});
+}
+function openRegulation(id){
+  const reg=regById(id);if(!reg)return;
+  const switched=view.key!=='eco';
+  if(switched)setView(VIEWS.eco);
+  selectedActor=null;
+  if(switched)requestAnimationFrame(()=>highlightRegulation(reg));else highlightRegulation(reg);
+  const sm=statusMeta(reg.status);
+  panel.style.setProperty('--pc',sm.color);
+  pTag.textContent='Regulation';
+  pTitle.textContent=reg.name;
+  pSub.innerHTML=`<span class="reg-jur">${reg.jurisdiction}</span>`;
+  const makers=resolveParties(reg.madeBy,MAKER_TO_ACTOR);
+  const binds=resolveParties(reg.binds,BINDS_TO_ACTOR);
+  const party=p=>`<button class="reg-actor ${p.actorId?'link':'plain'}"${p.actorId?` data-actor="${p.actorId}"`:''}><i style="background:${p.color}"></i>${p.label}</button>`;
+  const dates=Object.entries(reg.keyDates||{}).map(([k,v])=>`<li><span class="dk">${humanKey(k)}</span><span>${v}</span></li>`).join('');
+  const host=reg.sourceUrl.replace(/^https?:\/\//,'').replace(/^www\./,'').replace(/\/.*$/,'');
+  pBody.innerHTML=
+    `<div class="field"><span class="reg-badge"><span class="rb ${sm.fill}" style="--sc:${sm.color}"></span>${sm.label}</span></div>
+     <div class="field"><h4>What it actually constrains</h4><p>${reg.constrains}</p></div>
+     <div class="field"><h4>The tension</h4><p>${reg.tension}</p></div>
+     <div class="field"><h4>Who makes it → who it binds</h4>
+       <div class="rules-sub" style="margin-top:0">Made by</div>
+       <div class="reg-relation">${makers.map(party).join('')}</div>
+       <div class="rules-sub makes">Binds</div>
+       <div class="reg-relation">${binds.length?binds.map(party).join(''):'<span class="reg-actor plain"><i style="background:var(--text-dim)"></i>No direct corporate bindees — runs to states / voluntary</span>'}</div>
+     </div>
+     ${reg.penalties?`<div class="field"><h4>Penalty</h4><p>${reg.penalties}</p></div>`:''}
+     ${dates?`<div class="field"><h4>Key dates</h4><ul class="reg-dates">${dates}</ul></div>`:''}
+     <div class="field"><h4>Source</h4><a class="reg-source" href="${reg.sourceUrl}" target="_blank" rel="noopener">${host} ↗</a></div>
+     <div class="field"><p class="reg-note">${REG_META.disclaimer}</p></div>`;
+  pBody.querySelectorAll('.reg-actor.link').forEach(btn=>
+    btn.addEventListener('click',()=>openActor(btn.getAttribute('data-actor'))));
   showPanel();
 }
 function openRelation(i){
