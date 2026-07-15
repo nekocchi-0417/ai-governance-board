@@ -61,6 +61,13 @@
     margin-bottom:22px;
   }
   h1 em{font-style:normal;color:var(--gold)}
+  .subhead{
+    font-family:var(--display);
+    font-size:clamp(16px,2.4vw,21px);
+    color:var(--text-hi);
+    margin-bottom:18px;
+  }
+  .subhead strong{font-weight:600}
   .lede{
     font-size:clamp(16px,2vw,19px);
     color:var(--text-mid);
@@ -410,7 +417,8 @@
   <div class="wrap">
     <header>
       <div class="kicker"><span class="bar"></span><span id="kickerText">AI Governance Ecosystem (working prototype)</span></div>
-      <h1 id="h1">The bottleneck in AI is shifting from capability to <em>governance</em>. Understanding the players and ecosystem is step one.</h1>
+      <h1 id="h1">The bottleneck in AI is shifting from capability to <em>governance</em>.</h1>
+      <p class="subhead" id="subhead"><strong>Understanding the players and ecosystem is step one.</strong></p>
       <p class="lede" id="lede">The race to build advanced AI isn't one story — it's <strong>many actors</strong> pulling with and against each other, each chasing what it wants and hemmed in by what limits it. That gap between ambition and constraint is where governance actually happens. Pick an actor, or trace a tension between two.</p>
     </header>
 
@@ -1224,7 +1232,8 @@ REG_META.disclaimerZh = "截至 2026 年 7 月的状态。部分条目仍有争�
 const UI = {
   en:{
     kicker:"AI Governance Ecosystem (working prototype)",
-    h1:"The bottleneck in AI is shifting from capability to <em>governance</em>. Understanding the players and ecosystem is step one.",
+    h1:"The bottleneck in AI is shifting from capability to <em>governance</em>.",
+    subhead:"<strong>Understanding the players and ecosystem is step one.</strong>",
     viewBoard:"Simplified view", viewEco:"The Ecosystem",
     constraintsLens:"Constraints lens", rulesLens:"Rules lens",
     constraintsLensTip:"Reframe every actor around what constrains it",
@@ -1252,7 +1261,8 @@ const UI = {
   },
   zh:{
     kicker:"AI 治理生态（工作原型）",
-    h1:"AI 的瓶颈正在从能力转向<em>治理</em>。理解其中的参与者与生态，是第一步。",
+    h1:"AI 的瓶颈正在从能力转向<em>治理</em>。",
+    subhead:"<strong>理解其中的参与者与生态，是第一步。</strong>",
     viewBoard:"简化视图", viewEco:"生态全景",
     constraintsLens:"约束视角", rulesLens:"规则视角",
     constraintsLensTip:"以“什么在约束它”重新审视每一方",
@@ -1758,6 +1768,7 @@ function renderSources(){
 function applyStaticUI(){
   document.getElementById('kickerText').textContent=U('kicker');
   document.getElementById('h1').innerHTML=U('h1');
+  document.getElementById('subhead').innerHTML=U('subhead');
   modeBoard.innerHTML=`${U('viewBoard')}<span class="cnt">4</span>`;
   modeEco.innerHTML=`${U('viewEco')}<span class="cnt">15</span>`;
   lens.innerHTML=`<span class="pip"></span>${U('constraintsLens')}`;lens.title=U('constraintsLensTip');
