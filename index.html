@@ -784,8 +784,8 @@ const ECO_RELATIONS = [
 //  regulations brief; `constrains`/`tension` are rendered as-is.
 // ============================================================
 const REG_META = {
-  "lastUpdated": "2026-07-06",
-  "disclaimer": "Statuses current as of July 2026. Some items remain contested or in active litigation (notably the US federal effort to preempt state AI laws). Verify before relying.",
+  "lastUpdated": "2026-10-06",
+  "disclaimer": "Statuses current as of October 2026. Some items remain contested or in active litigation (notably the US federal effort to preempt state AI laws, still unresolved in the courts). Verify before relying.",
   "statusValues": ["in-force", "phased", "enacted-pending", "provisional", "non-statutory", "voluntary"]
 };
 
@@ -799,12 +799,13 @@ const REGULATIONS = [
     "madeBy": ["eu"],
     "binds": ["frontier-labs", "big-tech", "startups", "enterprises-deploying-ai"],
     "constrains": "The world's only comprehensive risk-tiered AI law. Bans 'unacceptable risk' uses, regulates GPAI models, and buries high-risk systems in conformity assessments. Applies extraterritorially — touch the EU market, you're in.",
-    "tension": "Brussels effect vs. innovation flight. Even the EU blinked: high-risk obligations delayed to Dec 2027.",
+    "tension": "Brussels effect vs. innovation flight. Even the EU blinked — high-risk duties slipped to Dec 2027 — but enforcement is no longer theoretical: GPAI fining powers went live in Aug 2026.",
     "keyDates": {
       "inForce": "2024-08-01",
       "prohibitedPractices": "2025-02-02",
       "gpaiObligations": "2025-08-02",
-      "highRiskObligations": "2027-12-02 (delayed from Aug 2026; formally adopted Jun 2026 via the Digital Omnibus)"
+      "enforcementLive": "2026-08-02",
+      "highRiskObligations": "2027-12-02 (delay now law — Reg. (EU) 2026/1744, in force Jul 2026)"
     },
     "penalties": "Up to 7% of global turnover for prohibited practices",
     "sourceUrl": "https://artificialintelligenceact.eu/"
@@ -818,7 +819,7 @@ const REGULATIONS = [
     "madeBy": ["us-federal"],
     "binds": ["federal-agencies", "us-states"],
     "constrains": "Directs federal agencies to challenge state AI laws via litigation and funding levers, created an AI Litigation Task Force, and pushes a light-touch national standard. Doesn't itself preempt state law — that fight is in the courts.",
-    "tension": "Federal deregulation vs. state legislating. Named Colorado's law explicitly; DOJ intervened in xAI's suit against it.",
+    "tension": "Federal deregulation vs. state legislating. Named Colorado's law explicitly; DOJ intervened in xAI's suit against it — and ten months on, no court has ruled.",
     "keyDates": {
       "signed": "2025-12-11",
       "litigationTaskForce": "2026-01-09"
@@ -835,10 +836,11 @@ const REGULATIONS = [
     "madeBy": ["us-states"],
     "binds": ["frontier-labs"],
     "constrains": "First US law aimed squarely at frontier models (>10^26 FLOPs, $500M+ revenue developers). Mandates published safety frameworks, pre-deployment transparency reports, 15-day incident reporting to state authorities, and whistleblower protections.",
-    "tension": "Converts voluntary lab commitments into enforceable duties — disclosure as regulation. Applies to maybe five companies; shapes the whole industry.",
+    "tension": "Converts voluntary lab commitments into enforceable duties — disclosure as regulation. The first test is live: an Oct 2026 investigative subpoena to OpenAI over incident reporting.",
     "keyDates": {
       "signed": "2025-09-29",
-      "effective": "2026-01-01"
+      "effective": "2026-01-01",
+      "firstSubpoena": "2026-10"
     },
     "penalties": "Up to $1M per violation, enforced by the Attorney General",
     "sourceUrl": "https://leginfo.legislature.ca.gov/faces/billNavClient.xhtml?bill_id=202520260SB53"
@@ -851,11 +853,12 @@ const REGULATIONS = [
     "status": "phased",
     "madeBy": ["us-states"],
     "binds": ["frontier-labs", "big-tech", "platforms"],
-    "constrains": "AB 2013 forces generative AI developers to publish training-data documentation. SB 942 (amended by AB 853) requires AI content labeling and provenance detection, phasing in platform, hosting, and capture-device obligations through 2028.",
-    "tension": "Transparency about training data collides with trade secrets and copyright litigation exposure.",
+    "constrains": "AB 2013 forces generative AI developers to publish training-data documentation. SB 942 requires machine-readable provenance in AI content — a Sept 2026 urgency amendment (SB 1000) dropped the visible-label mandate but also scrapped the user threshold, so nearly every provider is covered. Platform, hosting, and capture-device obligations phase in through 2028.",
+    "tension": "Transparency about training data collides with trade secrets and copyright exposure — xAI's First Amendment challenge to AB 2013 is now before the Ninth Circuit.",
     "keyDates": {
       "ab2013Effective": "2026-01-01",
       "sb942Effective": "2026-08-02",
+      "sb1000Amended": "2026-09-30",
       "hostingPlatforms": "2027-01-01",
       "captureDevices": "2028-01-01"
     },
@@ -871,10 +874,11 @@ const REGULATIONS = [
     "madeBy": ["us-states"],
     "binds": ["enterprises-deploying-ai", "developers"],
     "constrains": "The great retreat. The original 2024 law imported the EU's risk-management model; under federal pressure and an xAI lawsuit it was repealed and replaced in a two-week sprint. The rewrite keeps notice, human-review rights, and record-keeping for automated decisions in consequential domains — and strips out impact assessments and duty-of-care.",
-    "tension": "Case study in how federal headwinds reshape state law. From 'high-risk AI systems' to 'automated decision-making technology' — the phrase 'artificial intelligence' no longer appears.",
+    "tension": "Case study in how federal headwinds reshape state law. The phrase 'artificial intelligence' no longer appears — and enforcement sits frozen while xAI's suit waits in federal court.",
     "keyDates": {
       "originalSigned": "2024-05-17",
       "replacementSigned": "2026-05-14",
+      "draftRules": "2026-08-11",
       "effective": "2027-01-01"
     },
     "penalties": "Enforced via consumer protection / deceptive trade practices",
@@ -891,7 +895,8 @@ const REGULATIONS = [
     "constrains": "Intent-based prohibitions (behavioral manipulation, unlawful discrimination, certain biometric uses) rather than EU-style risk tiers. Heavier on government use of AI than private sector. Includes a regulatory sandbox.",
     "tension": "The 'red state model': anti-woke and anti-Big-Tech at once — bans intentional discrimination but rejects disparate-impact liability.",
     "keyDates": {
-      "effective": "2026-01-01"
+      "effective": "2026-01-01",
+      "complaintPortal": "2026-09-01"
     },
     "penalties": "Civil penalties enforced by the Texas AG",
     "sourceUrl": "https://capitol.texas.gov/"
@@ -926,9 +931,10 @@ const REGULATIONS = [
     "tension": "Regulation as industrial policy: constrain just enough to be trusted, promote enough to compete.",
     "keyDates": {
       "enacted": "2025-01",
-      "effective": "2026-01-22"
+      "effective": "2026-01-22",
+      "enforcementDecree": "2026-07-20"
     },
-    "penalties": "Administrative fines (modest by EU standards)",
+    "penalties": "Administrative fines (modest by EU standards; on hold through 2026 under a grace period)",
     "sourceUrl": "https://www.msit.go.kr/"
   },
   {
@@ -942,7 +948,8 @@ const REGULATIONS = [
     "constrains": "Barely. A deliberately soft-law framework: promotes AI development, establishes a strategy headquarters, relies on cooperation duties rather than penalties. The anti-EU-AI-Act.",
     "tension": "Bet that light-touch wins the innovation race; critics call it regulation theater.",
     "keyDates": {
-      "enacted": "2025-05"
+      "enacted": "2025-05",
+      "basicPlanRevised": "2026-07-14"
     },
     "penalties": "None (no direct sanctions)",
     "sourceUrl": "https://www.cao.go.jp/"
@@ -956,12 +963,13 @@ const REGULATIONS = [
     "madeBy": ["china"],
     "binds": ["domestic-industry", "platforms"],
     "constrains": "Iterative, sector-specific rules rather than one omnibus law: algorithm recommendation rules (2022), deep synthesis rules (2023), Interim Measures for Generative AI (2023) requiring security assessments and alignment with 'core socialist values', and mandatory AI-content labeling measures (Sept 2025).",
-    "tension": "Content control and party alignment first, safety-washing second — yet China moves faster on binding rules than almost anyone.",
+    "tension": "Content control and party alignment first, safety-washing second — yet China moves faster on binding rules than almost anyone. First labeling-rule takedowns landed Sept 2026; a comprehensive AI law is now on the legislative agenda.",
     "keyDates": {
       "algorithmRules": "2022-03-01",
       "deepSynthesis": "2023-01-10",
       "genAiInterimMeasures": "2023-08-15",
-      "contentLabeling": "2025-09-01"
+      "contentLabeling": "2025-09-01",
+      "firstLabelingCases": "2026-09"
     },
     "penalties": "License revocation, service suspension, fines under Cybersecurity Law",
     "sourceUrl": "https://www.cac.gov.cn/"
@@ -974,11 +982,12 @@ const REGULATIONS = [
     "status": "non-statutory",
     "madeBy": ["uk"],
     "binds": [],
-    "constrains": "No AI-specific statute. Existing regulators (ICO, FCA, CMA, Ofcom) apply five cross-cutting principles within their remits. Indirect coverage via the Online Safety Act and Data (Use and Access) Act 2025. A private member's AI Regulation Bill is inching through the Lords.",
+    "constrains": "No AI-specific statute. Existing regulators (ICO, FCA, CMA, Ofcom) apply five cross-cutting principles within their remits. Indirect coverage via the Online Safety Act and Data (Use and Access) Act 2025. The private member's AI Regulation Bill quietly died; the Burnham government named the UK's first cabinet-level AI minister instead — capability first, statute later.",
     "tension": "Home of the AI Security Institute but declined to sign the 2025 summit declaration — safety research without safety law.",
     "keyDates": {
       "whitePaper": "2023-03",
-      "dataUseAccessAct": "2025"
+      "dataUseAccessAct": "2025",
+      "firstAiMinister": "2026-07-20"
     },
     "penalties": "Only via existing sectoral regulators",
     "sourceUrl": "https://www.gov.uk/government/publications/ai-regulation-a-pro-innovation-approach"
@@ -991,10 +1000,11 @@ const REGULATIONS = [
     "status": "phased",
     "madeBy": ["council-of-europe"],
     "binds": ["signatory-states"],
-    "constrains": "First binding international AI treaty, covering human rights, democracy, and rule of law. Signed by the EU, UK, US and others in Sept 2024 — but obligations run to states, not companies, and enforcement is soft.",
+    "constrains": "First binding international AI treaty, covering human rights, democracy, and rule of law. Signed by the EU, UK, US and others in Sept 2024 — but obligations run to states, not companies, and enforcement is soft. Two years on it still isn't in force: the EU's May 2026 ratification is one of the five needed.",
     "tension": "Binding in name, aspirational in practice. The US signed under one administration; follow-through under the next is an open question.",
     "keyDates": {
-      "openedForSignature": "2024-09-05"
+      "openedForSignature": "2024-09-05",
+      "euRatified": "2026-05-15"
     },
     "penalties": "None (state reporting mechanisms)",
     "sourceUrl": "https://www.coe.int/en/web/artificial-intelligence"
@@ -1015,6 +1025,75 @@ const REGULATIONS = [
     },
     "penalties": "None",
     "sourceUrl": "https://www.nist.gov/itl/ai-risk-management-framework"
+  },
+  {
+    "id": "il-sb315",
+    "name": "Illinois AI Safety Measures Act (SB 315)",
+    "jurisdiction": "Illinois, US",
+    "type": "binding-law",
+    "status": "enacted-pending",
+    "madeBy": ["us-states"],
+    "binds": ["frontier-labs"],
+    "constrains": "The third state law aimed squarely at frontier developers ($500M+ revenue above a compute threshold) — and the first in the US to mandate third-party audits of them. Safety protocols, transparency, independent verification: not just self-attestation.",
+    "tension": "Raises the state-patchwork stakes: California and New York asked labs to disclose; Illinois sends in the auditors.",
+    "keyDates": {
+      "signed": "2026-07-06",
+      "effective": "2027-01-01",
+      "complianceObligations": "2028-01-01"
+    },
+    "penalties": "Civil penalties, AG-enforced",
+    "sourceUrl": "https://www.ilga.gov/"
+  },
+  {
+    "id": "vn-ai-law",
+    "name": "Vietnam Law on Artificial Intelligence",
+    "jurisdiction": "Vietnam",
+    "type": "binding-law",
+    "status": "in-force",
+    "madeBy": ["vietnam"],
+    "binds": ["domestic-industry", "platforms"],
+    "constrains": "The third comprehensive national AI law in force anywhere, after the EU's and Korea's. Risk-based obligations, content labeling, and state oversight of AI services — a middle-income country moving faster than most of the G7.",
+    "tension": "Governance as development strategy: bind the industry early, and bet the rules attract investment rather than scare it off.",
+    "keyDates": {
+      "enacted": "2025-12-10",
+      "effective": "2026-03-01"
+    },
+    "penalties": "Administrative fines and service suspension",
+    "sourceUrl": "https://www.vietnam-briefing.com/news/vietnams-ai-law-regulatory-milestone-business-implications.html/"
+  },
+  {
+    "id": "de-ki-mig",
+    "name": "Germany AI Market Surveillance Act (KI-MIG)",
+    "jurisdiction": "Germany",
+    "type": "binding-law",
+    "status": "in-force",
+    "madeBy": ["germany"],
+    "binds": ["frontier-labs", "big-tech", "enterprises-deploying-ai"],
+    "constrains": "The EU AI Act grows teeth in its largest economy: the Bundesnetzagentur becomes central market-surveillance authority, flanked by a citizens' complaints body and a fundamental-rights chamber, with penalty tiers mirroring the Act itself.",
+    "tension": "Brussels writes the rules; member states decide how hard they bite. Germany chose real machinery — now it has to staff it.",
+    "keyDates": {
+      "enacted": "2026-06-11",
+      "inForce": "2026-07-29"
+    },
+    "penalties": "Mirrors EU AI Act tiers — up to €35M or 7% of global turnover",
+    "sourceUrl": "https://www.bundesnetzagentur.de/"
+  },
+  {
+    "id": "us-eo-superintelligence",
+    "name": "US Executive Order 14434: Inaugurating the Era of Super Intelligence",
+    "jurisdiction": "United States (federal)",
+    "type": "executive-order",
+    "status": "in-force",
+    "madeBy": ["us-federal"],
+    "binds": ["federal-agencies", "frontier-labs"],
+    "constrains": "Rebrands AI as 'Super Intelligence' across federal agencies, orders a review of the statutory definition of AI, and funnels $5B+ into the Genesis Mission. Paired with a voluntary White House Accord in which frontier labs promise internal controls, external assessments, and board-level oversight.",
+    "tension": "Deregulate the states, then self-regulate at the top: the Accord asks labs to police the very systems the administration won't legislate on.",
+    "keyDates": {
+      "signed": "2026-09-29",
+      "accord": "2026-09-29"
+    },
+    "penalties": null,
+    "sourceUrl": "https://www.whitehouse.gov/presidential-actions/"
   }
 ];
 
@@ -1043,6 +1122,7 @@ const REG_STATUS = {
 const SLUG_LABEL = {
   'eu':'European Union', 'us-federal':'US federal government', 'us-states':'US states',
   'korea':'South Korea', 'japan':'Japan', 'china':'China', 'uk':'United Kingdom',
+  'vietnam':'Vietnam', 'germany':'Germany',
   'council-of-europe':'Council of Europe', 'standards-bodies':'Standards bodies',
   'frontier-labs':'Frontier labs', 'big-tech':'Big Tech', 'startups':'Startups',
   'developers':'Developers', 'domestic-industry':'Domestic industry', 'platforms':'Platforms',
@@ -1055,6 +1135,7 @@ const SLUG_LABEL = {
 // but state governments (no actor) when a rule BINDS it.
 const MAKER_TO_ACTOR = {
   'eu':'legislators', 'us-states':'legislators', 'korea':'legislators', 'japan':'legislators',
+  'vietnam':'legislators', 'germany':'legislators',
   'us-federal':'regulators', 'china':'regulators', 'uk':'regulators',
   'standards-bodies':'standards', 'council-of-europe':'intlorgs'
 };
@@ -1206,27 +1287,31 @@ const ECO_RELATIONS_ZH = [
 ];
 
 const REGULATIONS_ZH = {
-  "eu-ai-act":{ name:"欧盟《人工智能法案》（EU AI Act）", jurisdiction:"欧盟", constrains:"全球唯一一部按风险分级的综合性人工智能法。禁止'不可接受风险'的用途，监管 GPAI（通用人工智能）模型，并用一堆合规评估把高风险系统压得死死的。具有域外效力——只要碰了欧盟市场，你就在管辖范围内。", tension:"布鲁塞尔效应 vs. 创新外流。连欧盟自己都退缩了：高风险义务推迟到 2027 年 12 月。", penalties:"违反禁止性行为最高可处全球营业额的 7%", keyDates:{ "inForce":"2024-08-01", "prohibitedPractices":"2025-02-02", "gpaiObligations":"2025-08-02", "highRiskObligations":"2027-12-02（从 2026 年 8 月推迟；2026 年 6 月通过《数字综合法案》正式采纳）" } },
-  "us-eo-national-framework":{ name:"美国行政命令：确保人工智能的国家政策框架", jurisdiction:"美国（联邦）", constrains:"指示联邦机构通过诉讼和资金杠杆挑战各州人工智能法律，设立了人工智能诉讼工作组（AI Litigation Task Force），并推动一套轻触式的国家标准。它本身并不能优先排除州法——那场仗要在法庭上打。", tension:"联邦去监管 vs. 各州立法。它点名批评了科罗拉多州的法律；DOJ 介入了 xAI 对该法的诉讼。", penalties:null },
-  "ca-sb53":{ name:"加州 SB 53——《前沿人工智能透明度法》（TFAIA）", jurisdiction:"美国加州", constrains:"美国首部直接瞄准前沿模型（>10^26 FLOPs、营收 $500M+ 的开发者）的法律。强制要求公开安全框架、部署前透明度报告、15天内向州当局报告事故，以及吹哨人保护。", tension:"把实验室的自愿承诺变成可强制执行的义务——以披露为监管。适用对象也许只有五家公司；却塑造着整个行业。", penalties:"每次违规最高 $1M，由总检察长执法" },
-  "ca-transparency-stack":{ name:"加州人工智能透明度法组合（AB 2013、SB 942/AB 853）", jurisdiction:"美国加州", constrains:"AB 2013 强制生成式人工智能开发者公开训练数据文档。SB 942（经 AB 853 修订）要求对人工智能内容做标识和来源溯源检测，并在 2028 年前分阶段落实平台、托管和采集设备的义务。", tension:"训练数据的透明度，与商业秘密以及版权诉讼风险正面相撞。", penalties:"每次违规每天 $5,000（SB 942）" },
-  "co-ai-act":{ name:"科罗拉多州人工智能法（修订版，SB 26-189）", jurisdiction:"美国科罗拉多州", constrains:"一场大撤退。2024 年的原版法律照搬了欧盟的风险管理模式；在联邦施压和 xAI 一纸诉状之下，它在两周内被废止并替换。改写后的版本保留了自动化决策在重大领域中的告知、人工复核权和记录留存——却删掉了影响评估和注意义务。", tension:"一个关于联邦逆风如何重塑州法的案例。从'高风险人工智能系统'变成'自动化决策技术'——'人工智能'这个词组再也没有出现过。", penalties:"通过消费者保护／欺骗性商业行为条款执法" },
+  "eu-ai-act":{ name:"欧盟《人工智能法案》（EU AI Act）", jurisdiction:"欧盟", constrains:"全球唯一一部按风险分级的综合性人工智能法。禁止'不可接受风险'的用途，监管 GPAI（通用人工智能）模型，并用一堆合规评估把高风险系统压得死死的。具有域外效力——只要碰了欧盟市场，你就在管辖范围内。", tension:"布鲁塞尔效应 vs. 创新外流。连欧盟自己都退缩了——高风险义务推迟到 2027 年 12 月——但执法不再是纸上谈兵：GPAI 罚款权已于 2026 年 8 月启动。", penalties:"违反禁止性行为最高可处全球营业额的 7%", keyDates:{ "inForce":"2024-08-01", "prohibitedPractices":"2025-02-02", "gpaiObligations":"2025-08-02", "enforcementLive":"2026-08-02", "highRiskObligations":"2027-12-02（推迟已成为法律——条例 (EU) 2026/1744，2026 年 7 月生效）" } },
+  "us-eo-national-framework":{ name:"美国行政命令：确保人工智能的国家政策框架", jurisdiction:"美国（联邦）", constrains:"指示联邦机构通过诉讼和资金杠杆挑战各州人工智能法律，设立了人工智能诉讼工作组（AI Litigation Task Force），并推动一套轻触式的国家标准。它本身并不能优先排除州法——那场仗要在法庭上打。", tension:"联邦去监管 vs. 各州立法。它点名批评了科罗拉多州的法律；DOJ 介入了 xAI 对该法的诉讼——十个月过去，法院仍未作出任何裁决。", penalties:null },
+  "ca-sb53":{ name:"加州 SB 53——《前沿人工智能透明度法》（TFAIA）", jurisdiction:"美国加州", constrains:"美国首部直接瞄准前沿模型（>10^26 FLOPs、营收 $500M+ 的开发者）的法律。强制要求公开安全框架、部署前透明度报告、15天内向州当局报告事故，以及吹哨人保护。", tension:"把实验室的自愿承诺变成可强制执行的义务——以披露为监管。首场考验已经上演：2026 年 10 月，OpenAI 因事故报告收到调查传票。", penalties:"每次违规最高 $1M，由总检察长执法" },
+  "ca-transparency-stack":{ name:"加州人工智能透明度法组合（AB 2013、SB 942/AB 853）", jurisdiction:"美国加州", constrains:"AB 2013 强制生成式人工智能开发者公开训练数据文档。SB 942 要求在人工智能内容中嵌入机器可读的来源标识——2026 年 9 月的紧急修正案（SB 1000）取消了可见标签要求，但同时废除了用户数门槛，几乎所有提供者都被纳入。平台、托管和采集设备的义务将分阶段持续到 2028 年。", tension:"训练数据的透明度与商业秘密及版权风险正面相撞——xAI 针对 AB 2013 的第一修正案诉讼正待第九巡回法院裁决。", penalties:"每次违规每天 $5,000（SB 942）" },
+  "co-ai-act":{ name:"科罗拉多州人工智能法（修订版，SB 26-189）", jurisdiction:"美国科罗拉多州", constrains:"一场大撤退。2024 年的原版法律照搬了欧盟的风险管理模式；在联邦施压和 xAI 一纸诉状之下，它在两周内被废止并替换。改写后的版本保留了自动化决策在重大领域中的告知、人工复核权和记录留存——却删掉了影响评估和注意义务。", tension:"一个关于联邦逆风如何重塑州法的案例。'人工智能'这个词组再也没有出现过——而在 xAI 的诉讼悬于联邦法院期间，执法被全面冻结。", penalties:"通过消费者保护／欺骗性商业行为条款执法" },
   "tx-traiga":{ name:"德州《负责任人工智能治理法》（TRAIGA）", jurisdiction:"美国德州", constrains:"基于意图的禁止（行为操纵、非法歧视、某些生物识别用途），而非欧盟式的风险分级。对政府使用人工智能的约束重于私营部门。设有监管沙盒。", tension:"'红州模式'：既反觉醒又反大型科技公司——禁止蓄意歧视，却拒绝差别性影响（disparate-impact）责任。", penalties:"由德州总检察长执法的民事处罚" },
   "ny-raise":{ name:"纽约州 RAISE 法", jurisdiction:"美国纽约州", constrains:"纽约对 SB 53 的回应：大型前沿开发者必须维护安全计划、在 72小时内报告事故并公开披露。2025 年 12 月签署，2026 年 3 月的一项章程修正案将其软化。", tension:"如今有两个州都在监管总部不在自己辖内的前沿实验室——把算力阈值当作管辖权。", penalties:"民事处罚，由总检察长执法" },
   "kr-ai-framework-act":{ name:"韩国《人工智能框架法》（AI 基本法）", jurisdiction:"韩国", constrains:"继欧盟之后第二部综合性国家人工智能法。对敏感领域的'高影响'人工智能设定义务、要求人工智能内容标识、并为大规模模型设定安全职责——同时搭配明确的产业促进措施。", tension:"以监管为产业政策：约束到刚好足以被信任，促进到足以参与竞争。", penalties:"行政罚款（以欧盟标准看算温和）" },
   "jp-ai-promotion-act":{ name:"日本《人工智能促进法》", jurisdiction:"日本", constrains:"几乎不约束。一个刻意为之的软法框架：促进人工智能发展、设立战略总部、依靠合作义务而非处罚。反欧盟人工智能法案的那一种。", tension:"押注轻触式监管能赢下创新竞赛；批评者称之为监管表演。", penalties:"无（没有直接制裁）" },
-  "cn-genai-rules":{ name:"中国生成式人工智能规则体系", jurisdiction:"中国", constrains:"不是一部大而全的综合法，而是迭代式、分领域的规则：算法推荐规则（2022）、深度合成规则（2023）、要求安全评估并与'核心社会主义价值观'保持一致的《生成式人工智能暂行办法》（2023），以及强制性的人工智能内容标识办法（2025 年 9 月）。", tension:"内容管控与政党一致性优先，安全洗白其次——但在具约束力的规则上，中国推进得比几乎任何人都快。", penalties:"吊销许可、暂停服务、依《网络安全法》（Cybersecurity Law）罚款" },
-  "uk-sectoral":{ name:"英国亲创新（分领域）路径", jurisdiction:"英国", constrains:"没有专门的人工智能立法。现有监管机构（ICO、FCA、CMA、Ofcom）在各自职权范围内适用五项跨领域原则。通过《在线安全法》和《数据（使用与获取）法 2025》间接覆盖。一项议员个人提出的人工智能监管法案正在上议院缓慢推进。", tension:"人工智能安全研究院（AI Security Institute）的所在地，却拒签 2025 年峰会宣言——有安全研究，没有安全立法。", penalties:"仅通过现有分领域监管机构" },
-  "coe-framework-convention":{ name:"欧洲委员会《人工智能框架公约》", jurisdiction:"国际（条约）", constrains:"首部具约束力的国际人工智能条约，涵盖人权、民主和法治。欧盟、英国、美国等在 2024 年 9 月签署——但义务落在国家而非企业身上，且执行力度偏软。", tension:"名义上具约束力，实践中止于愿景。美国是在一届政府任内签署的；下一届是否兑现，还是个未知数。", penalties:"无（国家报告机制）" },
-  "nist-ai-rmf":{ name:"NIST 人工智能风险管理框架（NIST AI RMF）", jurisdiction:"美国（自愿性，全球采纳）", constrains:"自愿性，却是人工智能治理项目事实上的操作系统：治理、映射、度量、管理。被州法律、采购规则和保险公司引用——通过合同硬化的软法。", tension:"一个自愿性框架，做着联邦立法不肯做的工作。", penalties:"无" }
+  "cn-genai-rules":{ name:"中国生成式人工智能规则体系", jurisdiction:"中国", constrains:"不是一部大而全的综合法，而是迭代式、分领域的规则：算法推荐规则（2022）、深度合成规则（2023）、要求安全评估并与'核心社会主义价值观'保持一致的《生成式人工智能暂行办法》（2023），以及强制性的人工智能内容标识办法（2025 年 9 月）。", tension:"内容管控与政党一致性优先，安全洗白其次——但在具约束力的规则上，中国推进得比几乎任何人都快。2026 年 9 月出现首批标识规则执法案例；一部综合性人工智能法已提上立法议程。", penalties:"吊销许可、暂停服务、依《网络安全法》（Cybersecurity Law）罚款" },
+  "uk-sectoral":{ name:"英国亲创新（分领域）路径", jurisdiction:"英国", constrains:"没有专门的人工智能立法。现有监管机构（ICO、FCA、CMA、Ofcom）在各自职权范围内适用五项跨领域原则。通过《在线安全法》和《数据（使用与获取）法 2025》间接覆盖。那项议员个人提出的监管法案已悄然夭折；伯纳姆（Burnham）政府转而任命了英国首位内阁级 AI 部长——先建能力，后谈立法。", tension:"人工智能安全研究院（AI Security Institute）的所在地，却拒签 2025 年峰会宣言——有安全研究，没有安全立法。", penalties:"仅通过现有分领域监管机构" },
+  "coe-framework-convention":{ name:"欧洲委员会《人工智能框架公约》", jurisdiction:"国际（条约）", constrains:"首部具约束力的国际人工智能条约，涵盖人权、民主和法治。欧盟、英国、美国等在 2024 年 9 月签署——但义务落在国家而非企业身上，且执行力度偏软。签署两年后仍未生效：所需五份批准书中，只有欧盟在 2026 年 5 月交存了一份。", tension:"名义上具约束力，实践中止于愿景。美国是在一届政府任内签署的；下一届是否兑现，还是个未知数。", penalties:"无（国家报告机制）" },
+  "nist-ai-rmf":{ name:"NIST 人工智能风险管理框架（NIST AI RMF）", jurisdiction:"美国（自愿性，全球采纳）", constrains:"自愿性，却是人工智能治理项目事实上的操作系统：治理、映射、度量、管理。被州法律、采购规则和保险公司引用——通过合同硬化的软法。", tension:"一个自愿性框架，做着联邦立法不肯做的工作。", penalties:"无" },
+  "il-sb315":{ name:"伊利诺伊州《人工智能安全措施法》（SB 315）", jurisdiction:"美国伊利诺伊州", constrains:"第三部直接瞄准前沿开发者（营收 $500M 以上且高于算力门槛）的州法——也是美国首部强制对前沿开发者进行第三方审计的法律。安全协议、透明度、独立核验：不再只靠自我声明。", tension:"州法拼图的赌注再度加码：加州和纽约要求实验室披露；伊利诺伊州直接派来审计师。", penalties:"民事处罚，由总检察长执法" },
+  "vn-ai-law":{ name:"越南《人工智能法》", jurisdiction:"越南", constrains:"全球第三部生效的综合性国家人工智能法，仅次于欧盟和韩国。基于风险的义务、内容标识和对 AI 服务的国家监管——一个中等收入国家跑在了大多数 G7 成员前面。", tension:"以治理为发展战略：先给产业立规矩，再赌规则能吸引而非吓跑投资。", penalties:"行政罚款与暂停服务" },
+  "de-ki-mig":{ name:"德国《人工智能市场监管法》（KI-MIG）", jurisdiction:"德国", constrains:"欧盟《人工智能法案》在其最大经济体里长出了牙齿：联邦网络局（Bundesnetzagentur）成为中央市场监管机构，配套公民投诉机构和基本权利委员会，处罚档位与法案本身一致。", tension:"布鲁塞尔写规则；成员国决定咬多重。德国选择了真刀真枪的执行机器——现在得给它配齐人手。", penalties:"与欧盟《人工智能法案》档位一致——最高 €35M 或全球营业额的 7%" },
+  "us-eo-superintelligence":{ name:"美国第 14434 号行政命令：开启超级智能时代", jurisdiction:"美国（联邦）", constrains:"要求联邦机构以'超级智能'取代'AI'的提法，启动对 AI 法定定义的审查，并向'创世纪任务'（Genesis Mission）投入 $5B 以上。同日配套一份自愿性的白宫协定：前沿实验室承诺内部管控、外部评估与董事会层面的监督。", tension:"先给各州去监管，再在顶层搞自我监管：协定请实验室自己看管那些政府不愿立法约束的系统。", penalties:null }
 };
 const STATUS_ZH = { "in-force":"已生效", "phased":"分阶段实施中", "enacted-pending":"已颁布 · 待生效", "provisional":"临时性", "non-statutory":"非法定", "voluntary":"自愿性" };
-const SLUG_LABEL_ZH = { "eu":"欧盟", "us-federal":"美国联邦政府", "us-states":"美国各州", "korea":"韩国", "japan":"日本", "china":"中国", "uk":"英国", "council-of-europe":"欧洲委员会", "standards-bodies":"标准机构", "frontier-labs":"前沿实验室", "big-tech":"大型科技公司", "startups":"初创公司", "developers":"开发者", "domestic-industry":"本国产业", "platforms":"平台", "enterprises-deploying-ai":"部署人工智能的企业", "government-agencies":"政府机构", "federal-agencies":"联邦机构", "signatory-states":"签署国" };
-const REG_SHORT_ZH = { "eu-ai-act":"欧盟《人工智能法案》", "us-eo-national-framework":"美国人工智能行政命令", "ca-sb53":"加州 SB 53", "ca-transparency-stack":"加州透明度法组合", "co-ai-act":"科罗拉多州人工智能法", "tx-traiga":"德州 TRAIGA", "ny-raise":"纽约州 RAISE 法", "kr-ai-framework-act":"韩国人工智能框架法", "jp-ai-promotion-act":"日本人工智能促进法", "cn-genai-rules":"中国生成式人工智能规则", "uk-sectoral":"英国分领域路径", "coe-framework-convention":"欧委会人工智能公约", "nist-ai-rmf":"NIST AI RMF" };
-const DATE_KEY_ZH = { "inForce":"生效","prohibitedPractices":"禁止性行为","gpaiObligations":"GPAI 义务","highRiskObligations":"高风险义务","signed":"签署","litigationTaskForce":"诉讼工作组","effective":"生效","ab2013Effective":"AB 2013 生效","sb942Effective":"SB 942 生效","hostingPlatforms":"托管平台","captureDevices":"采集设备","originalSigned":"原版签署","replacementSigned":"替换版签署","amended":"修订","enacted":"颁布","algorithmRules":"算法规则","deepSynthesis":"深度合成","genAiInterimMeasures":"生成式人工智能暂行办法","contentLabeling":"内容标识","whitePaper":"白皮书","dataUseAccessAct":"《数据（使用与获取）法》","openedForSignature":"开放签署","v1Released":"1.0 版发布","genAiProfile":"生成式人工智能配置文件" };
+const SLUG_LABEL_ZH = { "eu":"欧盟", "us-federal":"美国联邦政府", "us-states":"美国各州", "korea":"韩国", "japan":"日本", "china":"中国", "uk":"英国", "vietnam":"越南", "germany":"德国", "council-of-europe":"欧洲委员会", "standards-bodies":"标准机构", "frontier-labs":"前沿实验室", "big-tech":"大型科技公司", "startups":"初创公司", "developers":"开发者", "domestic-industry":"本国产业", "platforms":"平台", "enterprises-deploying-ai":"部署人工智能的企业", "government-agencies":"政府机构", "federal-agencies":"联邦机构", "signatory-states":"签署国" };
+const REG_SHORT_ZH = { "eu-ai-act":"欧盟《人工智能法案》", "us-eo-national-framework":"美国人工智能行政命令", "ca-sb53":"加州 SB 53", "ca-transparency-stack":"加州透明度法组合", "co-ai-act":"科罗拉多州人工智能法", "tx-traiga":"德州 TRAIGA", "ny-raise":"纽约州 RAISE 法", "kr-ai-framework-act":"韩国人工智能框架法", "jp-ai-promotion-act":"日本人工智能促进法", "cn-genai-rules":"中国生成式人工智能规则", "uk-sectoral":"英国分领域路径", "coe-framework-convention":"欧委会人工智能公约", "nist-ai-rmf":"NIST AI RMF", "il-sb315":"伊利诺伊州 SB 315", "vn-ai-law":"越南人工智能法", "de-ki-mig":"德国 KI-MIG", "us-eo-superintelligence":"美国超级智能行政命令" };
+const DATE_KEY_ZH = { "inForce":"生效","prohibitedPractices":"禁止性行为","gpaiObligations":"GPAI 义务","highRiskObligations":"高风险义务","signed":"签署","litigationTaskForce":"诉讼工作组","effective":"生效","ab2013Effective":"AB 2013 生效","sb942Effective":"SB 942 生效","hostingPlatforms":"托管平台","captureDevices":"采集设备","originalSigned":"原版签署","replacementSigned":"替换版签署","amended":"修订","enacted":"颁布","algorithmRules":"算法规则","deepSynthesis":"深度合成","genAiInterimMeasures":"生成式人工智能暂行办法","contentLabeling":"内容标识","whitePaper":"白皮书","dataUseAccessAct":"《数据（使用与获取）法》","openedForSignature":"开放签署","v1Released":"1.0 版发布","genAiProfile":"生成式人工智能配置文件","enforcementLive":"执法启动","firstSubpoena":"首次调查传票","sb1000Amended":"SB 1000 修订","draftRules":"实施规则草案","complaintPortal":"投诉门户上线","enforcementDecree":"实施令修订","basicPlanRevised":"基本计划修订","firstLabelingCases":"首批标识执法案例","firstAiMinister":"首位 AI 部长","euRatified":"欧盟批准","complianceObligations":"合规义务","accord":"自愿协定" };
 const SOURCES_ZH = [ "对法律、执法及治理这一职业最偏重实务的追踪", "涵盖 70+ 国家的国家人工智能政策的权威数据库", "《人工智能法案》的全文、实施时间表和合规检查工具", "关于人工智能进展、投资和政策活动的年度数据", "逐个会期追踪美国各州法律的拼凑格局", "对前沿人工智能治理与地缘政治的深度分析", "追踪法律之下的标准层（ISO/IEC 42001、CEN-CENELEC）", "关于前沿模型治理、算力治理和制度设计的研究" ];
 const ECO_ACTORS_ZH = Object.assign({}, ECO_ACTORS_ZH_A, ECO_ACTORS_ZH_B);
-REG_META.disclaimerZh = "截至 2026 年 7 月的状态。部分条目仍有争议或正在诉讼中（尤其是美国联邦试图优先排除各州 AI 法律一事）。依赖前请自行核实。";
+REG_META.disclaimerZh = "截至 2026 年 10 月的状态。部分条目仍有争议或正在诉讼中（尤其是美国联邦试图优先排除各州 AI 法律一事，法院至今未决）。依赖前请自行核实。";
 
 // ---- UI chrome strings ----
 const UI = {
@@ -1490,7 +1575,11 @@ const REG_SHORT = {
   'coe-framework-convention':'CoE AI Convention',
   'nist-ai-rmf':'NIST AI RMF',
   'uk-sectoral':'UK sectoral approach',
-  'cn-genai-rules':'China GenAI rules'
+  'cn-genai-rules':'China GenAI rules',
+  'il-sb315':'Illinois SB 315',
+  'vn-ai-law':'Vietnam AI Law',
+  'de-ki-mig':'Germany KI-MIG',
+  'us-eo-superintelligence':'US Super Intelligence EO'
 };
 function regShort(reg){
   if(LANG==='zh') return REG_SHORT_ZH[reg.id]||reg.name;
@@ -1555,7 +1644,8 @@ function ecoColor(actorId){
 function humanKey(k){
   return k.replace(/([A-Z])/g,' $1').replace(/^./,c=>c.toUpperCase())
     .replace(/\bGpai\b/i,'GPAI').replace(/\bGen Ai\b/i,'GenAI').replace(/\bAi\b/g,'AI')
-    .replace(/\bV1\b/,'v1').replace(/\bAb2013\b/i,'AB 2013').replace(/\bSb942\b/i,'SB 942').trim();
+    .replace(/\bEu\b/,'EU').replace(/\bV1\b/,'v1')
+    .replace(/\bAb2013\b/i,'AB 2013').replace(/\bSb942\b/i,'SB 942').replace(/\bSb1000\b/i,'SB 1000').trim();
 }
 // resolve madeBy/binds slugs → dedup list of {label, actorId|null, color}
 function resolveParties(slugs,map){
